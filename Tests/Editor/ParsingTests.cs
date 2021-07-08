@@ -61,7 +61,7 @@ class ParsingTests
     public void Format(string input, string expectedFormat, float? _)
     {
         var node = Parser.Parse(input, out var error);
-        void PrintFormat(Formatter.FormatFlags formatFlags) => Debug.Log( formatFlags + ":\n" + Formatter.Format(node, formatFlags));
+        void PrintFormat(Formatter.FormatFlags formatFlags) => Debug.Log(formatFlags + ":\n" + Formatter.Format(node, formatFlags));
         PrintFormat(Formatter.FormatFlags.None);
         PrintFormat(Formatter.FormatFlags.Colors);
         PrintFormat(Formatter.FormatFlags.DifferentColorPerNode);
@@ -82,7 +82,7 @@ class ParsingTests
         Debug.Log(format);
         Assert.AreEqual(expectedFormat, format);
         if (result.HasValue)
-            Assert.AreEqual(result.Value, Evaluator.Eval(parsed, new Dictionary<string, float> {{"a", 7f}}));
+            Assert.AreEqual(result.Value, Evaluator.Eval(parsed, new Dictionary<string, float> { { "a", 7f } }));
     }
 
     [TestCase("32+4", "32 + 4")]

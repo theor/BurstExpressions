@@ -10,7 +10,7 @@ namespace Eval.Runtime
     {
         public static unsafe uint4 Hash(Node[] nodes)
         {
-            if(nodes == null || nodes.Length == 0)
+            if (nodes == null || nodes.Length == 0)
                 return uint4.zero;
             fixed (Node* p = nodes)
                 return xxHash3.Hash128(p, UnsafeUtility.SizeOf<Node>() * nodes.Length);
@@ -63,20 +63,20 @@ namespace Eval.Runtime
 
         public unsafe EvalGraph(Node[] nodes, byte expectedFinalStackSize, byte maxStackSize, Allocator allocator = Allocator.Persistent)
         {
-            var size = (ushort) (UnsafeUtility.SizeOf<Node>() * nodes.Length);
-            Length = (ushort) nodes.Length;
+            var size = (ushort)(UnsafeUtility.SizeOf<Node>() * nodes.Length);
+            Length = (ushort)nodes.Length;
             ExpectedFinalStackSize = expectedFinalStackSize;
             MaxStackSize = maxStackSize;
             _allocator = allocator;
-            Nodes = (Node*) UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<Node>(),
+            Nodes = (Node*)UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<Node>(),
                 _allocator);
-            fixed(Node* ptr = nodes)
+            fixed (Node* ptr = nodes)
                 UnsafeUtility.MemCpy(Nodes, ptr, size);
         }
 
         public unsafe void Dispose()
         {
-            if(Nodes != null)
+            if (Nodes != null)
                 UnsafeUtility.Free(Nodes, _allocator);
         }
     }

@@ -19,9 +19,9 @@ namespace Eval.Runtime
     public struct EvalState
     {
         private NativeList<float3> _stack;
-        
+
         private int _current;
-        
+
 
         [BurstCompile]
         public static unsafe void Run(in EvalGraph graph, float3* @params, out float3 res)
@@ -31,13 +31,13 @@ namespace Eval.Runtime
 
         public static unsafe void Run(in EvalGraph graph, NativeArray<float3> @params, out float3 res)
         {
-            res = new EvalState().Run(graph, (float3*) @params.GetUnsafeReadOnlyPtr());
+            res = new EvalState().Run(graph, (float3*)@params.GetUnsafeReadOnlyPtr());
         }
 
-        
+
         public static unsafe void Run(in EvalGraph graph, float3[] @params, out float3 res)
         {
-            fixed(float3* ptr = @params)
+            fixed (float3* ptr = @params)
                 res = new EvalState().Run(graph, ptr);
         }
 
@@ -71,7 +71,7 @@ namespace Eval.Runtime
             public float3 Pop()
             {
                 var elt = _stack[_stack.Length - 1];
-                _stack.RemoveAt(_stack.Length-1);
+                _stack.RemoveAt(_stack.Length - 1);
                 return elt;
             }
 
@@ -80,9 +80,9 @@ namespace Eval.Runtime
                 _stack.Add(val);
             }
         }
-        
+
         [BurstCompile]
-        public unsafe float3 Run(in EvalGraph graph,  float3* @params)
+        public unsafe float3 Run(in EvalGraph graph, float3* @params)
         {
             using (_stack = new NativeList<float3>(graph.MaxStackSize, Allocator.Temp))
             {
@@ -99,7 +99,7 @@ namespace Eval.Runtime
 
                 Assert.AreNotEqual(0, _stack.Length);
                 Assert.AreEqual(graph.ExpectedFinalStackSize, _stack.Length);
-                return _stack[_stack.Length-1];
+                return _stack[_stack.Length - 1];
             }
         }
 
@@ -115,7 +115,7 @@ namespace Eval.Runtime
          * 1 x * 2 3 * +
          * 1 x * 6 +
          */
-        public static void ExecuteOp<TContext>(in EvalGraph.Node node, ref TContext impl) where TContext:struct, IContext
+        public static void ExecuteOp<TContext>(in EvalGraph.Node node, ref TContext impl) where TContext : struct, IContext
         {
             switch (node.Op)
             {
@@ -128,7 +128,7 @@ namespace Eval.Runtime
                     impl.Push(node.Val);
                     break;
                 case EvalOp.Param_0:
-                    impl.Push(impl.Param((byte) (node.Index - 1)));
+                    impl.Push(impl.Param((byte)(node.Index - 1)));
                     break;
                 case EvalOp.Ld_0:
                     impl.Push(impl.Load((byte)(node.Index - 1)));
@@ -187,7 +187,7 @@ namespace Eval.Runtime
                     impl.Push(Fbm.fbm(impl.Pop(), 1, 5, 0.4f));
                     break;
                 case EvalOp.Fbm_4:
-                    impl.Push(Fbm.fbm(impl.Pop(), impl.Pop().x, (int) impl.Pop().x, impl.Pop().x));
+                    impl.Push(Fbm.fbm(impl.Pop(), impl.Pop().x, (int)impl.Pop().x, impl.Pop().x));
                     break;
                 case EvalOp.CNoise_1:
                     impl.Push(noise.cnoise(impl.Pop()));

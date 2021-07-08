@@ -37,7 +37,7 @@ namespace Eval.Editor
         {
             if (string.IsNullOrEmpty(input))
                 return input;
-            var oldValue = input.Substring(0,1);
+            var oldValue = input.Substring(0, 1);
             return input.Replace(oldValue, $"<color=#ff0000>{oldValue}</color>");
         }
 
@@ -52,24 +52,24 @@ namespace Eval.Editor
             // var s = new GUIStyle(EditorStyles.textField) {richText = true};
             // EditorGUILayout.TextField(Format(_text), s);
             // EditorGUI.LabelField(r, Format(_text), new GUIStyle(EditorStyles.label){richText = true, padding = s.padding});
-            
+
             _e.OnInspectorGUI();
             // Formula.LiveEdit(ref _evalgraph, (graph, newGraph) => _dirty = true);
             var c = Formula.Content;
             EditorGUILayout.LabelField("OpCodes");
-            if(c != null)
+            if (c != null)
                 for (var i = 0; i < c.Length; i++)
                 {
                     var node = c[i];
                     EditorGUILayout.LabelField(i.ToString(), node.ToString() ?? "null");
                 }
             EditorGUILayout.LabelField("Evaluation Tester");
-            
+
             EditorGUI.BeginChangeCheck();
             ParamA = EditorGUILayout.Vector3Field("Parameter A", ParamA);
             if (EditorGUI.EndChangeCheck())
                 _dirty = true;
-            if(_dirty && _evalgraph.Length > 0)
+            if (_dirty && _evalgraph.Length > 0)
             {
                 EvalState.Run(_evalgraph, (float3)ParamA, out var res);
                 Result = res;

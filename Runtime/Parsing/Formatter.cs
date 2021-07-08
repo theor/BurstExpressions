@@ -24,10 +24,10 @@ namespace Eval
             }
 
             // shortcut for later
-            public static int HaltonInt(int index, int nbase, int max) => (int) (Halton(index, nbase) * max);
+            public static int HaltonInt(int index, int nbase, int max) => (int)(Halton(index, nbase) * max);
             public static Color ColorFromIndex(int index, int hbase = 3, float s = 1, float v = 0.5f)
             {
-                return Color.HSVToRGB((float) HaltonSequence.Halton(index, hbase), s, v);
+                return Color.HSVToRGB((float)HaltonSequence.Halton(index, hbase), s, v);
             }
         }
 
@@ -88,12 +88,12 @@ namespace Eval
         {
             if ((options.Flags & FormatFlags.Indented) != 0)
             {
-                return $"{(b ? "\n"  : "")}{new string(' ', options.Indent * 2)}{s}";
+                return $"{(b ? "\n" : "")}{new string(' ', options.Indent * 2)}{s}";
             }
 
             return s;
         }
-        
+
         static string FormatRec(INode n, ref Options options)
         {
             switch (n)
@@ -108,13 +108,13 @@ namespace Eval
                     var parens = (options.Flags & FormatFlags.ParensAroundBinaryOperators) != 0;
                     var left = parens ? "(" : "";
                     var right = parens ? Break(options, ")") : "";
-                    if(parens) options.Indent++;
+                    if (parens) options.Indent++;
                     var a = BreakIf(parens, options, FormatRec(binOp.A, ref options));
-                    if(parens) options.Indent--;
+                    if (parens) options.Indent--;
                     var op = Break(options, FormatOp(binOp.Type));
-                    if(parens) options.Indent++;
+                    if (parens) options.Indent++;
                     var b = Break(options, FormatRec(binOp.B, ref options));
-                    if(parens) options.Indent--;
+                    if (parens) options.Indent--;
                     return Colorize($"{left}{a} {op} {b}{right}", options.Colors.Binary, ref options);
                 case FuncCall f:
 
@@ -137,7 +137,7 @@ namespace Eval
             options.Flags.HasFlag(FormatFlags.Colors)
                 ? $"<color=#{ColorUtility.ToHtmlStringRGB(c)}>{s}</color>"
                 : (options.Flags & FormatFlags.DifferentColorPerNode) != 0
-                    ? $"<color=#{ColorUtility.ToHtmlStringRGB(HaltonSequence.ColorFromIndex(options.RandomColorSeed++, s:0.45f, v: 1))}>{s}</color>"
+                    ? $"<color=#{ColorUtility.ToHtmlStringRGB(HaltonSequence.ColorFromIndex(options.RandomColorSeed++, s: 0.45f, v: 1))}>{s}</color>"
                     : s;
 
         public static string Format(INode n, FormatFlags flags = FormatFlags.None)

@@ -9,17 +9,19 @@ internal static class GuiExtensions
 
     static void Init()
     {
-        if(_init)
+        if (_init)
             return;
         _init = true;
-        var transparent = new Color(1,1,0,0);
-        _transparentTextFieldStyle = new GUIStyle(EditorStyles.textField) {richText = true,
-            normal = {textColor = transparent},
-            hover = {textColor = transparent},
-            active = {textColor = transparent},
-            focused = {textColor = transparent},
+        var transparent = new Color(1, 1, 0, 0);
+        _transparentTextFieldStyle = new GUIStyle(EditorStyles.textField)
+        {
+            richText = true,
+            normal = { textColor = transparent },
+            hover = { textColor = transparent },
+            active = { textColor = transparent },
+            focused = { textColor = transparent },
         };
-        _richLabelStyle = new GUIStyle(EditorStyles.label){richText = true, padding = _transparentTextFieldStyle.padding};
+        _richLabelStyle = new GUIStyle(EditorStyles.label) { richText = true, padding = _transparentTextFieldStyle.padding };
     }
 
     public static string RichTextField(string value, string richDisplayValue)

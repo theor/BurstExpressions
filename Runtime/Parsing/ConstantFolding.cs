@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace Eval
 {
-    public static class ConstantFolding 
+    public static class ConstantFolding
     {
         public struct FoldContext : IContext
         {
@@ -32,7 +32,7 @@ namespace Eval
 
             public void EndNode(List<EvalGraph.Node> nodes, EvalGraph.Node node)
             {
-                if(!_foldable)
+                if (!_foldable)
                     nodes.Add(node);
                 else
                 {
@@ -42,7 +42,7 @@ namespace Eval
                     }
                     for (int i = 0; i < _pushed; i++)
                     {
-                        nodes.Add(new EvalGraph.Node(EvalOp.Const_0, Stack[Stack.Count - _pushed + i].Value));                 
+                        nodes.Add(new EvalGraph.Node(EvalOp.Const_0, Stack[Stack.Count - _pushed + i].Value));
                     }
                 }
             }
@@ -70,7 +70,7 @@ namespace Eval
 
             public void Push(float3 val)
             {
-                Stack.Add(new Val { Value = val, Foldable = _foldable});
+                Stack.Add(new Val { Value = val, Foldable = _foldable });
                 _pushed++;
             }
         }

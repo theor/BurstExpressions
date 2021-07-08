@@ -78,9 +78,9 @@ namespace Eval
                     oldGraph.Dispose();
                     return;
                 }
-                
-            
-                evalGraph = new EvalGraph(Content, (byte) ExpectedFinalStackLength, MaxStackSize);
+
+
+                evalGraph = new EvalGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize);
                 onFormulaChanged?.Invoke(oldGraph, evalGraph);
                 oldGraph.Dispose();
             }
@@ -89,7 +89,7 @@ namespace Eval
 
         public void Compile(out EvalGraph evalGraph)
         {
-            if(Content == null || ExpectedFinalStackLength == 0)
+            if (Content == null || ExpectedFinalStackLength == 0)
                 Init();
 
             // fixed (void* vptr = parsed)
@@ -99,9 +99,9 @@ namespace Eval
             //     Content = new byte[byteLength];
             // }
 
-            _lastFormulaHashCode = Input?.GetHashCode() ?? 0; 
-            
-            evalGraph = new EvalGraph(Content, (byte) ExpectedFinalStackLength, MaxStackSize);
+            _lastFormulaHashCode = Input?.GetHashCode() ?? 0;
+
+            evalGraph = new EvalGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize);
         }
 
         public void Init()
@@ -151,7 +151,7 @@ namespace Eval
             if (cleanup && NamedValues != null)
             {
                 for (var index = NamedValues.Count - 1; index >= 0; index--)
-                    if(v != null && !v.VariableInfos.TryGetValue(NamedValues[index].Name, out var info))
+                    if (v != null && !v.VariableInfos.TryGetValue(NamedValues[index].Name, out var info))
                         NamedValues.RemoveAt(index);
             }
 
@@ -162,7 +162,7 @@ namespace Eval
         public void SetParameters(params string[] formulaParams)
         {
             if (Params == null)
-                Params = formulaParams.ToList(); 
+                Params = formulaParams.ToList();
             else
             {
                 Params.Clear();
@@ -170,7 +170,7 @@ namespace Eval
             }
         }
     }
-    
+
     [Serializable]
     public struct FormulaParam
     {
@@ -190,7 +190,7 @@ namespace Eval
 
         public static FormulaParam FromSubFormula(string name, INode subformula)
         {
-            return new FormulaParam(name, FormulaParamFlag.Formula) {SubFormulaNode = subformula};
+            return new FormulaParam(name, FormulaParamFlag.Formula) { SubFormulaNode = subformula };
         }
 
         public void ParseSubFormula()
@@ -198,7 +198,7 @@ namespace Eval
             SubFormulaNode = Parser.Parse(SubFormula, out var error);
             SubFormulaError = error;
         }
-        
+
         public FormulaParam(string name, FormulaParamFlag isSingleFloat = FormulaParamFlag.Vector3)
         {
             Name = name;

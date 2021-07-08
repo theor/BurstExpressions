@@ -107,56 +107,56 @@ namespace Eval
                 switch (r.CurrentTokenType)
                 {
                     case Token.LeftParens:
-                    {
-                        opStack.Push(Ops[OpType.LeftParens]);
-                        r.ReadToken();
-                        INode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
-                            opStack.Count);
-                        if (r.CurrentTokenType == Token.Coma)
-                            throw new InvalidDataException("Tuples not supported");
-                        if (r.CurrentTokenType != Token.RightParens)
-                            throw new InvalidDataException("Mismatched parens, missing a closing parens");
-                        output.Push(arg);
-
-                        while (opStack.TryPeek(out var stackOp) && stackOp.Type != OpType.LeftParens)
                         {
-                            opStack.Pop();
-                            PopOpOpandsAndPushNode(stackOp);
-                        }
+                            opStack.Push(Ops[OpType.LeftParens]);
+                            r.ReadToken();
+                            INode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
+                                opStack.Count);
+                            if (r.CurrentTokenType == Token.Coma)
+                                throw new InvalidDataException("Tuples not supported");
+                            if (r.CurrentTokenType != Token.RightParens)
+                                throw new InvalidDataException("Mismatched parens, missing a closing parens");
+                            output.Push(arg);
 
-                        if (opStack.TryPeek(out var leftParens) && leftParens.Type == OpType.LeftParens)
-                            opStack.Pop();
-                        else
-                            throw new InvalidDataException("Mismatched parens");
-                        r.ReadToken();
-                        break;
-                    }
+                            while (opStack.TryPeek(out var stackOp) && stackOp.Type != OpType.LeftParens)
+                            {
+                                opStack.Pop();
+                                PopOpOpandsAndPushNode(stackOp);
+                            }
+
+                            if (opStack.TryPeek(out var leftParens) && leftParens.Type == OpType.LeftParens)
+                                opStack.Pop();
+                            else
+                                throw new InvalidDataException("Mismatched parens");
+                            r.ReadToken();
+                            break;
+                        }
                     case Token.RightParens:
                         throw new InvalidDataException("Mismatched parens");
                     case Token.Op:
-                    {
-                        bool unary = r.PrevTokenType == Token.Op ||
-                                     r.PrevTokenType == Token.LeftParens ||
-                                     r.PrevTokenType == Token.None;
-                        var readBinOp = ReadOperator(r.CurrentToken, unary);
-
-                        while (opStack.TryPeek(out var stackOp) &&
-                               // the operator at the top of the operator stack is not a left parenthesis or coma
-                               stackOp.Type != OpType.LeftParens && stackOp.Type != OpType.Coma &&
-                               // there is an operator at the top of the operator stack with greater precedence
-                               (stackOp.Precedence > readBinOp.Precedence ||
-                                // or the operator at the top of the operator stack has equal precedence and the token is left associative
-                                stackOp.Precedence == readBinOp.Precedence &&
-                                readBinOp.Associativity == Associativity.Left))
                         {
-                            opStack.Pop();
-                            PopOpOpandsAndPushNode(stackOp);
-                        }
+                            bool unary = r.PrevTokenType == Token.Op ||
+                                         r.PrevTokenType == Token.LeftParens ||
+                                         r.PrevTokenType == Token.None;
+                            var readBinOp = ReadOperator(r.CurrentToken, unary);
 
-                        opStack.Push(readBinOp);
-                        r.ReadToken();
-                        break;
-                    }
+                            while (opStack.TryPeek(out var stackOp) &&
+                                   // the operator at the top of the operator stack is not a left parenthesis or coma
+                                   stackOp.Type != OpType.LeftParens && stackOp.Type != OpType.Coma &&
+                                   // there is an operator at the top of the operator stack with greater precedence
+                                   (stackOp.Precedence > readBinOp.Precedence ||
+                                    // or the operator at the top of the operator stack has equal precedence and the token is left associative
+                                    stackOp.Precedence == readBinOp.Precedence &&
+                                    readBinOp.Associativity == Associativity.Left))
+                            {
+                                opStack.Pop();
+                                PopOpOpandsAndPushNode(stackOp);
+                            }
+
+                            opStack.Push(readBinOp);
+                            r.ReadToken();
+                            break;
+                        }
                     case Token.Number:
                         output.Push(new ExpressionValue(float.Parse(r.CurrentToken, CultureInfo.InvariantCulture)));
                         r.ReadToken();

@@ -32,7 +32,7 @@ namespace Eval
             public int NextIndex = 1;
             public Dictionary<string, VariableInfo> VariableInfos = new Dictionary<string, VariableInfo>();
         }
-        
+
         internal class FormulaParamNameComparer : IComparer<FormulaParam>
         {
             public int Compare(FormulaParam x, FormulaParam y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal);
@@ -62,7 +62,7 @@ namespace Eval
         private static void Rec(List<EvalGraph.Node> nodes, List<FormulaParam> variables, INode node,
             List<string> formulaParams, Variables variableInfos, TranslationOptions translationOptions)
         {
-            
+
             switch (node)
             {
                 case ExpressionValue v:
@@ -70,8 +70,8 @@ namespace Eval
                     break;
                 case Variable variable:
                     var paramIndex = formulaParams == null ? -1 : formulaParams.IndexOf(variable.Id);
-                    if(paramIndex >= 0)
-                        nodes.Add(EvalGraph.Node.Param((byte) (paramIndex + 1)));
+                    if (paramIndex >= 0)
+                        nodes.Add(EvalGraph.Node.Param((byte)(paramIndex + 1)));
                     else // not a param, but a user created variable (named value)
                     {
                         var flag = variable.Id.StartsWith("f", StringComparison.OrdinalIgnoreCase)
@@ -87,20 +87,20 @@ namespace Eval
                         else
                             variableParam = variables[idx];
 
-                        if (!variableInfos.VariableInfos.TryGetValue(variable.Id, out var info)) 
+                        if (!variableInfos.VariableInfos.TryGetValue(variable.Id, out var info))
                         {
                             variableInfos.VariableInfos.Add(variable.Id, info = new VariableInfo());
-                            
+
                             // SUB FORMULA
                             if (variableParam.IsSingleFloat == FormulaParam.FormulaParamFlag.Formula)
                             {
                                 info.Translated = new List<EvalGraph.Node>();
-                                if(info.Translated == null && string.IsNullOrEmpty(variableParam.SubFormulaError))
+                                if (info.Translated == null && string.IsNullOrEmpty(variableParam.SubFormulaError))
                                     variableParam.ParseSubFormula();
                                 Rec(info.Translated, variables, variableParam.SubFormulaNode, formulaParams, variableInfos, translationOptions);
                                 if ((translationOptions & TranslationOptions.FoldConstantExpressions) != 0)
                                     info.Translated = ConstantFolding.Fold(info.Translated);
-                                
+
                                 if (info.Translated.Count == 1 && info.Translated[0].Op == EvalOp.Const_0)
                                     info.Inline = true;
                                 else
@@ -108,7 +108,7 @@ namespace Eval
                             }
                         }
 
-                        
+
                         /*
                          * = x + x, x = 1+2
                          * = (1+2) + (1+2)
@@ -127,7 +127,7 @@ namespace Eval
                                 if (info.Index == 0)
                                     throw new InvalidDataException(
                                         $"The definition of variable '{variable.Id}' is recursive, aborting");
-                                nodes.Add(EvalGraph.Node.Ld((byte) info.Index));
+                                nodes.Add(EvalGraph.Node.Ld((byte)info.Index));
                             }
                         }
                         else
@@ -135,7 +135,7 @@ namespace Eval
                             var v = variableParam.IsSingleFloat switch
                             {
                                 FormulaParam.FormulaParamFlag.Float => new float3(variableParam.Value.x),
-                                FormulaParam.FormulaParamFlag.Vector3 => (float3) variableParam.Value,
+                                FormulaParam.FormulaParamFlag.Vector3 => (float3)variableParam.Value,
                                 _ => throw new System.NotImplementedException(),
                             };
                             nodes.Add(new EvalGraph.Node(EvalOp.Const_0, v));
@@ -145,9 +145,9 @@ namespace Eval
                     break;
                 case UnOp u:
                     Rec(nodes, variables, u.A, formulaParams, variableInfos, translationOptions);
-                    if(u.Type == OpType.Plus)
+                    if (u.Type == OpType.Plus)
                         break;
-                    if(u.Type == OpType.Minus)
+                    if (u.Type == OpType.Minus)
                         nodes.Add(new EvalGraph.Node(EvalOp.Minus_1));
                     else
                         throw new NotImplementedException(u.Type.ToString());
@@ -174,14 +174,14 @@ namespace Eval
                         for (int i = n - 1; i >= 0; i--)
                             Rec(nodes, variables, f.Arguments[i], formulaParams, variableInfos, translationOptions);
                     }
-                
-                    if(!Functions.TryGetOverloads(f.Id, out var overloads))
+
+                    if (!Functions.TryGetOverloads(f.Id, out var overloads))
                         throw new InvalidDataException($"Unknown function {f.Id}");
                     var overloadIndex = overloads.FindIndex(o => o.ArgumentCount == f.Arguments.Count);
-                    if(overloadIndex == -1)
+                    if (overloadIndex == -1)
                         throw new InvalidDataException($"Function {f.Id} expects {String.Join(" or ", overloads.Select(o => o.ArgumentCount).ToString())} arguments, got {f.Arguments.Count}");
                     var overload = overloads[overloadIndex];
-                
+
                     CheckArgCount(overload.ArgumentCount);
                     nodes.Add(new EvalGraph.Node(overload.OpCode));
                     break;
