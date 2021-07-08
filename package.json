@@ -8,13 +8,16 @@
   "changelogUrl": "https://github.com/theor/BurstExpressions/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/theor/BurstExpressions/blob/main/LICENSE",
   "dependencies": {
- },
- "keywords": [
+    "com.unity.burst": "1.4.8",
+    "com.unity.mathematics": "1.2.1"
+  },
+  "keywords": [
     "burst"
   ],
   "author": {
     "name": "theor",
     "email": "theo.richart@gmail.com",
     "url": "https://www.theor.xyz"
-  }
+  },
+  "type": "library"
 }
