@@ -22,7 +22,7 @@ namespace Eval
         {
             // Ld_0 op index, base 1
             public int Index;
-            public List<EvalGraph.Node> Translated;
+            public List<Node> Translated;
             // instead of computing the subformula once and loading the cached result with LD, recompute it everytime
             public bool Inline;
         }
@@ -44,10 +44,10 @@ namespace Eval
             None = 0,
             FoldConstantExpressions = 1,
         }
-        public static EvalGraph.Node[] Translate(INode node, List<FormulaParam> variables, List<string> parameters,
+        public static Node[] Translate(INode node, List<FormulaParam> variables, List<string> parameters,
             out Variables v, TranslationOptions options = TranslationOptions.None)
         {
-            List<EvalGraph.Node> nodes = new List<EvalGraph.Node>();
+            List<Node> nodes = new List<Node>();
             v = new Variables();
             Rec(nodes, variables, node, parameters, v, options);
             int insertIndex = 0;
@@ -59,19 +59,19 @@ namespace Eval
             return (options & TranslationOptions.FoldConstantExpressions) != 0 ? ConstantFolding.Fold(nodes).ToArray() : nodes.ToArray();
         }
 
-        private static void Rec(List<EvalGraph.Node> nodes, List<FormulaParam> variables, INode node,
+        private static void Rec(List<Node> nodes, List<FormulaParam> variables, INode node,
             List<string> formulaParams, Variables variableInfos, TranslationOptions translationOptions)
         {
 
             switch (node)
             {
                 case ExpressionValue v:
-                    nodes.Add(new EvalGraph.Node(EvalOp.Const_0, v.F));
+                    nodes.Add(new Node(EvalOp.Const_0, v.F));
                     break;
                 case Variable variable:
                     var paramIndex = formulaParams == null ? -1 : formulaParams.IndexOf(variable.Id);
                     if (paramIndex >= 0)
-                        nodes.Add(EvalGraph.Node.Param((byte)(paramIndex + 1)));
+                        nodes.Add(Node.Param((byte)(paramIndex + 1)));
                     else // not a param, but a user created variable (named value)
                     {
                         var flag = variable.Id.StartsWith("f", StringComparison.OrdinalIgnoreCase)
@@ -94,7 +94,7 @@ namespace Eval
                             // SUB FORMULA
                             if (variableParam.IsSingleFloat == FormulaParam.FormulaParamFlag.Formula)
                             {
-                                info.Translated = new List<EvalGraph.Node>();
+                                info.Translated = new List<Node>();
                                 if (info.Translated == null && string.IsNullOrEmpty(variableParam.SubFormulaError))
                                     variableParam.ParseSubFormula();
                                 Rec(info.Translated, variables, variableParam.SubFormulaNode, formulaParams, variableInfos, translationOptions);
@@ -127,7 +127,7 @@ namespace Eval
                                 if (info.Index == 0)
                                     throw new InvalidDataException(
                                         $"The definition of variable '{variable.Id}' is recursive, aborting");
-                                nodes.Add(EvalGraph.Node.Ld((byte)info.Index));
+                                nodes.Add(Node.Ld((byte)info.Index));
                             }
                         }
                         else
@@ -138,7 +138,7 @@ namespace Eval
                                 FormulaParam.FormulaParamFlag.Vector3 => (float3)variableParam.Value,
                                 _ => throw new System.NotImplementedException(),
                             };
-                            nodes.Add(new EvalGraph.Node(EvalOp.Const_0, v));
+                            nodes.Add(new Node(EvalOp.Const_0, v));
                         }
                     }
 
@@ -148,7 +148,7 @@ namespace Eval
                     if (u.Type == OpType.Plus)
                         break;
                     if (u.Type == OpType.Minus)
-                        nodes.Add(new EvalGraph.Node(EvalOp.Minus_1));
+                        nodes.Add(new Node(EvalOp.Minus_1));
                     else
                         throw new NotImplementedException(u.Type.ToString());
                     break;
@@ -156,7 +156,7 @@ namespace Eval
                     // reverse order
                     Rec(nodes, variables, bin.B, formulaParams, variableInfos, translationOptions);
                     Rec(nodes, variables, bin.A, formulaParams, variableInfos, translationOptions);
-                    nodes.Add(new EvalGraph.Node(bin.Type switch
+                    nodes.Add(new Node(bin.Type switch
                     {
                         OpType.Add => EvalOp.Add_2,
                         OpType.Sub => EvalOp.Sub_2,
@@ -183,7 +183,7 @@ namespace Eval
                     var overload = overloads[overloadIndex];
 
                     CheckArgCount(overload.ArgumentCount);
-                    nodes.Add(new EvalGraph.Node(overload.OpCode));
+                    nodes.Add(new Node(overload.OpCode));
                     break;
 
                 default:

@@ -24,13 +24,13 @@ namespace Eval
             private int _popped, _pushed;
             private bool _foldable;
 
-            public void StartNode(EvalGraph.Node n)
+            public void StartNode(Node n)
             {
                 _popped = _pushed = 0;
                 _foldable = true;
             }
 
-            public void EndNode(List<EvalGraph.Node> nodes, EvalGraph.Node node)
+            public void EndNode(List<Node> nodes, Node node)
             {
                 if (!_foldable)
                     nodes.Add(node);
@@ -42,7 +42,7 @@ namespace Eval
                     }
                     for (int i = 0; i < _pushed; i++)
                     {
-                        nodes.Add(new EvalGraph.Node(EvalOp.Const_0, Stack[Stack.Count - _pushed + i].Value));
+                        nodes.Add(new Node(EvalOp.Const_0, Stack[Stack.Count - _pushed + i].Value));
                     }
                 }
             }
@@ -74,11 +74,11 @@ namespace Eval
                 _pushed++;
             }
         }
-        public static List<EvalGraph.Node> Fold(IEnumerable<EvalGraph.Node> nodes)
+        public static List<Node> Fold(IEnumerable<Node> nodes)
         {
             var current = 0;
             FoldContext ctx = FoldContext.New();
-            List<EvalGraph.Node> result = new List<EvalGraph.Node>();
+            List<Node> result = new List<Node>();
             var count = nodes.Count();
             while (current < count)
             {

@@ -8,18 +8,18 @@ public class EvaluationTests : EvaluationTestsBase
     [Test]
     public void ConstFloat3()
     {
-        Run(new float3(1, 2, 3), new[] { new EvalGraph.Node(EvalOp.Const_0, new float3(1, 2, 3)) }, 1, 10);
+        Run(new float3(1, 2, 3), new[] { new Node(EvalOp.Const_0, new float3(1, 2, 3)) }, 1, 10);
     }
     [Test]
     public void Test_LD()
     {
         Run(new float3(.5f), new[]
         {
-            new EvalGraph.Node(EvalOp.Const_0, new float3(5)),
-            new EvalGraph.Node(EvalOp.Const_0, new float3(10)),
-            EvalGraph.Node.Ld(2),
-            EvalGraph.Node.Ld(1),
-            new EvalGraph.Node(EvalOp.Div_2),
+            new Node(EvalOp.Const_0, new float3(5)),
+            new Node(EvalOp.Const_0, new float3(10)),
+            Node.Ld(2),
+            Node.Ld(1),
+            new Node(EvalOp.Div_2),
         }, 3, 10);
     }
     [Test]
@@ -27,12 +27,12 @@ public class EvaluationTests : EvaluationTestsBase
     {
         Run(new float3(.5f), new[]
         {
-            new EvalGraph.Node(EvalOp.Const_0, new float3(10)),
-            new EvalGraph.Node(EvalOp.Const_0, new float3(5)),
+            new Node(EvalOp.Const_0, new float3(10)),
+            new Node(EvalOp.Const_0, new float3(5)),
             // 5 / 10
-            EvalGraph.Node.Ld(1),
-            EvalGraph.Node.Ld(2),
-            new EvalGraph.Node(EvalOp.Div_2),
+            Node.Ld(1),
+            Node.Ld(2),
+            new Node(EvalOp.Div_2),
         }, 3, 10);
     }
 
@@ -41,9 +41,9 @@ public class EvaluationTests : EvaluationTestsBase
     {
         Run(new float3(1, 2, 3), new[]
         {
-            EvalGraph.Node.Param(1),
-            EvalGraph.Node.Param(2),
-            new EvalGraph.Node(EvalOp.Add_2),
+            Node.Param(1),
+            Node.Param(2),
+            new Node(EvalOp.Add_2),
         }, 1, 10, new float3(1, 2, 0), new float3(0, 0, 3));
     }
 
@@ -52,9 +52,9 @@ public class EvaluationTests : EvaluationTestsBase
     {
         Run(new float3(5, 7, 9), new[]
         {
-            new EvalGraph.Node(EvalOp.Const_0, new float3(1, 2, 3)),
-            new EvalGraph.Node(EvalOp.Const_0, new float3(4, 5, 6)),
-            new EvalGraph.Node(EvalOp.Add_2),
+            new Node(EvalOp.Const_0, new float3(1, 2, 3)),
+            new Node(EvalOp.Const_0, new float3(4, 5, 6)),
+            new Node(EvalOp.Add_2),
         }, 1, 10);
     }
 
@@ -63,9 +63,9 @@ public class EvaluationTests : EvaluationTestsBase
     {
         Run(new float3(2), new[]
         {
-            new EvalGraph.Node(EvalOp.Const_0, 3f),
-            new EvalGraph.Node(EvalOp.Const_0, 6f),
-            new EvalGraph.Node(EvalOp.Div_2),
+            new Node(EvalOp.Const_0, 3f),
+            new Node(EvalOp.Const_0, 6f),
+            new Node(EvalOp.Div_2),
         }, 1, 10);
     }
 }

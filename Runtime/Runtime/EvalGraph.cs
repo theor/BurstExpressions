@@ -15,45 +15,7 @@ namespace Eval.Runtime
             fixed (Node* p = nodes)
                 return xxHash3.Hash128(p, UnsafeUtility.SizeOf<Node>() * nodes.Length);
         }
-        [Serializable]
-        public struct Node
-        {
-            public EvalOp Op;
-            public float3 Val;
-            public byte Index;
 
-            public Node(EvalOp op, float3 val = default)
-            {
-                Assert.AreNotEqual(EvalOp.Param_0, op);
-                Op = op;
-                Val = val;
-                Index = 0;
-            }
-
-            public static Node Param(byte index)
-            {
-                Assert.AreNotEqual((byte)0, index, "Index must be in base1");
-                return new Node(EvalOp.Param_0, index);
-            }
-
-            public static Node Ld(byte index)
-            {
-                Assert.AreNotEqual((byte)0, index, "Index must be in base1");
-                return new Node(EvalOp.Ld_0, index);
-            }
-
-            private Node(EvalOp op, byte index)
-            {
-                Op = op;
-                Val = default;
-                Index = index;
-            }
-
-            public override string ToString()
-            {
-                return $"{nameof(Op)}: {Op}, {nameof(Val)}: {Val}, {nameof(Index)}: {Index}";
-            }
-        }
         [NativeDisableUnsafePtrRestriction]
         public unsafe Node* Nodes;
         public ushort Length;
@@ -78,6 +40,46 @@ namespace Eval.Runtime
         {
             if (Nodes != null)
                 UnsafeUtility.Free(Nodes, _allocator);
+        }
+    }
+
+    [Serializable]
+    public struct Node
+    {
+        public EvalOp Op;
+        public float3 Val;
+        public byte Index;
+
+        public Node(EvalOp op, float3 val = default)
+        {
+            Assert.AreNotEqual(EvalOp.Param_0, op);
+            Op = op;
+            Val = val;
+            Index = 0;
+        }
+
+        public static Node Param(byte index)
+        {
+            Assert.AreNotEqual((byte)0, index, "Index must be in base1");
+            return new Node(EvalOp.Param_0, index);
+        }
+
+        public static Node Ld(byte index)
+        {
+            Assert.AreNotEqual((byte)0, index, "Index must be in base1");
+            return new Node(EvalOp.Ld_0, index);
+        }
+
+        private Node(EvalOp op, byte index)
+        {
+            Op = op;
+            Val = default;
+            Index = index;
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(Op)}: {Op}, {nameof(Val)}: {Val}, {nameof(Index)}: {Index}";
         }
     }
 

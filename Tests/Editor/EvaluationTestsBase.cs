@@ -10,7 +10,7 @@ using UnityEngine.Assertions;
 
 public class EvaluationTestsBase
 {
-    protected unsafe void Run(float3 result, IEnumerable<EvalGraph.Node> nodes, byte expectedFinalStackLength, byte maxStackSize, params float3[] @params)
+    protected unsafe void Run(float3 result, IEnumerable<Node> nodes, byte expectedFinalStackLength, byte maxStackSize, params float3[] @params)
     {
         EvalJob j = default;
         try

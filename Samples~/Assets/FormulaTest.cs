@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Eval;
@@ -10,6 +11,10 @@ public class FormulaTest : MonoBehaviour
 {
     public Formula Test;
     private EvalGraph _evalgraph;
+    public bool LiveEdit;
+
+    public void Awake() => Debug.Log("Awake");
+    public void OnEnable() => Debug.Log("OnEnable");
 
     public void Reset()
     {
@@ -30,7 +35,8 @@ public class FormulaTest : MonoBehaviour
 
     private void Update()
     {
-        Test.LiveEdit(ref _evalgraph);
+        if (LiveEdit)
+            Test.LiveEdit(ref _evalgraph);
 
         var parameters = new float3[2];
         parameters[0] = Time.realtimeSinceStartup;

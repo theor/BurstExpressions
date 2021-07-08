@@ -115,7 +115,7 @@ namespace Eval.Runtime
          * 1 x * 2 3 * +
          * 1 x * 6 +
          */
-        public static void ExecuteOp<TContext>(in EvalGraph.Node node, ref TContext impl) where TContext : struct, IContext
+        public static void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext
         {
             switch (node.Op)
             {

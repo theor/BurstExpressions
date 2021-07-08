@@ -51,7 +51,7 @@ namespace Eval
         [SerializeField]
         private int ExpectedFinalStackLength;
         private const byte MaxStackSize = 10;
-        [SerializeField] internal EvalGraph.Node[] Content;
+        [SerializeField] internal Node[] Content;
         public List<FormulaParam> NamedValues;
         public List<string> Params;
 
@@ -122,7 +122,7 @@ namespace Eval
                 return;
             }
             Translator.Variables v = null;
-            EvalGraph.Node[] parsed = null;
+            Node[] parsed = null;
             if (root != null)
             {
                 if (NamedValues != null)
