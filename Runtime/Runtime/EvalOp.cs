@@ -4,7 +4,7 @@ namespace Eval.Runtime
     /// Each operator supported in the formula. The suffix is the arity, the number of arguments expected by the
     /// operator. Declaring the same operator with multiple arities allows overloading.
     /// </summary>
-    public enum EvalOp
+    public enum EvalOp : ushort
     {
         None,
         Const_0,
