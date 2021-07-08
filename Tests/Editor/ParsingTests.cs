@@ -61,12 +61,13 @@ class ParsingTests
     public void Format(string input, string expectedFormat, float? _)
     {
         var node = Parser.Parse(input, out var error);
-        Debug.Log(Formatter.Format(node, Formatter.FormatFlags.None));
-        Debug.Log(Formatter.Format(node, Formatter.FormatFlags.Colors));
-        Debug.Log(Formatter.Format(node, Formatter.FormatFlags.DifferentColorPerNode));
-        Debug.Log(Formatter.Format(node, Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.ParensAroundBinaryOperators));
-        Debug.Log(Formatter.Format(node, Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.Indented));
-        Debug.Log(Formatter.Format(node, Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.Indented | Formatter.FormatFlags.ParensAroundBinaryOperators));
+        void PrintFormat(Formatter.FormatFlags formatFlags) => Debug.Log( formatFlags + ":\n" + Formatter.Format(node, formatFlags));
+        PrintFormat(Formatter.FormatFlags.None);
+        PrintFormat(Formatter.FormatFlags.Colors);
+        PrintFormat(Formatter.FormatFlags.DifferentColorPerNode);
+        PrintFormat(Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.ParensAroundBinaryOperators);
+        PrintFormat(Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.Indented);
+        PrintFormat(Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.Indented | Formatter.FormatFlags.ParensAroundBinaryOperators);
     }
     [TestCaseSource("Cases")]
     public void Parse(string input, string expectedFormat, float? result = null)
