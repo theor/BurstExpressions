@@ -45,23 +45,23 @@ namespace BurstExpressions.Runtime.Parsing
             None = 0,
             FoldConstantExpressions = 1,
         }
-        public static Node[] Translate(INode node, List<FormulaParam> variables, List<string> parameters,
-            out Variables v, TranslationOptions options = TranslationOptions.None)
+        public static Node[] Translate<TOperators>(INode node, List<FormulaParam> variables, List<string> parameters,
+            out Variables v, TranslationOptions options = TranslationOptions.None, TOperators operators = default) where TOperators : struct, IOperators
         {
             List<Node> nodes = new List<Node>();
             v = new Variables();
-            Rec(nodes, variables, node, parameters, v, options);
+            Rec(nodes, variables, node, parameters, v, options, operators);
             int insertIndex = 0;
             foreach (var keyValuePair in v.VariableInfos.Where(x => !x.Value.Inline && x.Value.Index != 0).OrderBy(x => x.Value.Index))
             {
                 nodes.InsertRange(insertIndex, keyValuePair.Value.Translated);
                 insertIndex += keyValuePair.Value.Translated.Count;
             }
-            return (options & TranslationOptions.FoldConstantExpressions) != 0 ? ConstantFolding.Fold(nodes).ToArray() : nodes.ToArray();
+            return (options & TranslationOptions.FoldConstantExpressions) != 0 ? ConstantFolding.Fold(nodes, operators).ToArray() : nodes.ToArray();
         }
 
-        private static void Rec(List<Node> nodes, List<FormulaParam> variables, INode node,
-            List<string> formulaParams, Variables variableInfos, TranslationOptions translationOptions)
+        private static void Rec<TOperators>(List<Node> nodes, List<FormulaParam> variables, INode node,
+            List<string> formulaParams, Variables variableInfos, TranslationOptions translationOptions, TOperators operators) where TOperators : struct, IOperators
         {
 
             switch (node)
@@ -98,11 +98,11 @@ namespace BurstExpressions.Runtime.Parsing
                                 info.Translated = new List<Node>();
                                 if (info.Translated == null && string.IsNullOrEmpty(variableParam.SubFormulaError))
                                     variableParam.ParseSubFormula();
-                                Rec(info.Translated, variables, variableParam.SubFormulaNode, formulaParams, variableInfos, translationOptions);
+                                Rec(info.Translated, variables, variableParam.SubFormulaNode, formulaParams, variableInfos, translationOptions, operators);
                                 if ((translationOptions & TranslationOptions.FoldConstantExpressions) != 0)
-                                    info.Translated = ConstantFolding.Fold(info.Translated);
+                                    info.Translated = ConstantFolding.Fold(info.Translated, operators);
 
-                                if (info.Translated.Count == 1 && info.Translated[0].Op == EvalOp.Const_0)
+                                if (info.Translated.Count == 1 && info.Translated[0].Op == (ushort)EvalOp.Const_0)
                                     info.Inline = true;
                                 else
                                     info.Index = variableInfos.NextIndex++;
@@ -145,7 +145,7 @@ namespace BurstExpressions.Runtime.Parsing
 
                     break;
                 case UnOp u:
-                    Rec(nodes, variables, u.A, formulaParams, variableInfos, translationOptions);
+                    Rec(nodes, variables, u.A, formulaParams, variableInfos, translationOptions, operators);
                     if (u.Type == OpType.Plus)
                         break;
                     if (u.Type == OpType.Minus)
@@ -155,8 +155,8 @@ namespace BurstExpressions.Runtime.Parsing
                     break;
                 case BinOp bin:
                     // reverse order
-                    Rec(nodes, variables, bin.B, formulaParams, variableInfos, translationOptions);
-                    Rec(nodes, variables, bin.A, formulaParams, variableInfos, translationOptions);
+                    Rec(nodes, variables, bin.B, formulaParams, variableInfos, translationOptions, operators);
+                    Rec(nodes, variables, bin.A, formulaParams, variableInfos, translationOptions, operators);
                     nodes.Add(new Node(bin.Type switch
                     {
                         OpType.Add => EvalOp.Add_2,
@@ -173,7 +173,7 @@ namespace BurstExpressions.Runtime.Parsing
                         Assert.AreEqual(f.Arguments.Count, n);
                         // reverse order
                         for (int i = n - 1; i >= 0; i--)
-                            Rec(nodes, variables, f.Arguments[i], formulaParams, variableInfos, translationOptions);
+                            Rec(nodes, variables, f.Arguments[i], formulaParams, variableInfos, translationOptions, operators);
                     }
 
                     if (!Functions.TryGetOverloads(f.Id, out var overloads))
@@ -184,7 +184,7 @@ namespace BurstExpressions.Runtime.Parsing
                     var overload = overloads[overloadIndex];
 
                     CheckArgCount(overload.ArgumentCount);
-                    nodes.Add(new Node(overload.OpCode));
+                    nodes.Add(new Node(overload.OpCode, 0));
                     break;
 
                 default:

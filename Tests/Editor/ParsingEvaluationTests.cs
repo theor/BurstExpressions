@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BurstExpressions.Runtime;
 using BurstExpressions.Runtime.Parsing;
+using BurstExpressions.Runtime.Runtime;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
@@ -65,7 +66,7 @@ public class ParsingEvaluationTests : EvaluationTestsBase
     public void Simplify(string input)
     {
         var n = Parser.Parse(input, out _);
-        var folded = Translator.Translate(n, new List<FormulaParam> { new FormulaParam("p") { Value = Vector3.one } }, new List<string> { "x" }, out _, Translator.TranslationOptions.FoldConstantExpressions);
+        var folded = Translator.Translate<Evaluator.DefaultOps>(n, new List<FormulaParam> { new FormulaParam("p") { Value = Vector3.one } }, new List<string> { "x" }, out _, Translator.TranslationOptions.FoldConstantExpressions);
         Debug.Log(Formatter.Format(n, Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.ParensAroundBinaryOperators));
         Debug.Log(String.Join("\n", folded));
     }
@@ -97,7 +98,7 @@ public class ParsingEvaluationTests : EvaluationTestsBase
 
         try
         {
-            var nodes = Translator.Translate(main, formulaParams, new List<string> { "p" }, out var usedValues,
+            var nodes = Translator.Translate<Evaluator.DefaultOps>(main, formulaParams, new List<string> { "p" }, out var usedValues,
                 simplify ? Translator.TranslationOptions.FoldConstantExpressions : Translator.TranslationOptions.None);
             Debug.Log(string.Join("\n", nodes));
             Run(result, nodes, (byte)(usedValues.NextIndex), 10, null);
@@ -119,7 +120,7 @@ public class ParsingEvaluationTests : EvaluationTestsBase
         var x = Parser.Parse("5", out var xErr);
         Assert.IsNull(err);
         Assert.IsNull(xErr);
-        var nodes = Translator.Translate(main, new List<FormulaParam>
+        var nodes = Translator.Translate<Evaluator.DefaultOps>(main, new List<FormulaParam>
         {
             FormulaParam.FromSubFormula("x", x)
         }, null, out var usedValues);

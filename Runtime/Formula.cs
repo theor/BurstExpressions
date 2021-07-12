@@ -140,7 +140,7 @@ namespace BurstExpressions.Runtime
                 }
                 try
                 {
-                    parsed = Translator.Translate(root, NamedValues, Params, out v, Options);
+                    parsed = Translate(root, out v);
                 }
                 catch (Exception e)
                 {
@@ -157,6 +157,11 @@ namespace BurstExpressions.Runtime
 
             ExpectedFinalStackLength = v.NextIndex;
             Content = parsed;
+        }
+
+        protected virtual Node[] Translate(INode root, out Translator.Variables v)
+        {
+            return Translator.Translate<Evaluator.DefaultOps>(root, NamedValues, Params, out v, Options);
         }
 
         public void SetParameters(params string[] formulaParams)

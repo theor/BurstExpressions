@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BurstExpressions.Runtime.Runtime;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace BurstExpressions.Runtime.Parsing
 {
@@ -11,12 +12,20 @@ namespace BurstExpressions.Runtime.Parsing
         public readonly struct FunctionDefinition
         {
             public readonly int ArgumentCount;
-            public readonly EvalOp OpCode;
+            public readonly ushort OpCode;
+            public readonly string Name;
 
-            public FunctionDefinition(EvalOp opCode, int argumentCount)
+            public FunctionDefinition(ushort opCode, string name, int argumentCount)
             {
                 ArgumentCount = argumentCount;
                 OpCode = opCode;
+                Name = name;
+            }
+            public FunctionDefinition(Enum opCode, int argumentCount)
+            {
+                ArgumentCount = argumentCount;
+                OpCode = Convert.ToUInt16(opCode);
+                Name = opCode.ToString();
             }
         }
 

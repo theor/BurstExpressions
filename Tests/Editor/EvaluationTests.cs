@@ -1,3 +1,5 @@
+using System;
+using System.Configuration;
 using BurstExpressions.Runtime.Runtime;
 using NUnit.Framework;
 using Unity.Burst;
@@ -20,28 +22,99 @@ public class EvaluationTests : EvaluationTestsBase
         {
             Evaluator state = new Evaluator();
             NativeSlice<float3> nativeSlice = Params.Slice(index * EvaluationGraph.ParameterCount, EvaluationGraph.ParameterCount);
-            Results[index] = state.Run(EvaluationGraph, new Evaluator.DefaultOps(), (float3*)nativeSlice.GetUnsafeReadOnlyPtr(), nativeSlice.Length);
+            var defaultOps = new Evaluator.DefaultOps();
+            Results[index] = state.Run(EvaluationGraph, ref defaultOps, (float3*)nativeSlice.GetUnsafeReadOnlyPtr(), nativeSlice.Length);
         }
+    }
+
+    [BurstCompile]
+    public struct EvaluationSwitcherJob : IJob
+    {
+        public EvaluationGraph EvaluationGraph;
+        public NativeReference<float3> Result;
+
+        public unsafe void Execute()
+        {
+            Evaluator state = new Evaluator();
+            var defaultOps = new Switcher<Evaluator.DefaultOps, Switcher<ExtensionOperators, LastSwitcher>>();
+            Result.Value = state.Run(EvaluationGraph, ref defaultOps, null, 0);
+        }
+    }
+
+    enum ExtensionOps : ushort
+    {
+        None,
+        Times2,
     }
     struct ExtensionOperators : IOperators
     {
         public void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext
         {
-            throw new System.NotImplementedException();
+            switch ((ExtensionOps)node.Op)
+            {
+                // unary
+                case ExtensionOps.Times2:
+                    impl.Push(2 * impl.Pop());
+                    break;
+                default:
+                    throw new NotImplementedException(string.Format("Operator {0} is not implemented", (ExtensionOps)node.Op));
+            }
         }
+
+    }
+
+    struct LastSwitcher : IOperators
+    {
+        public void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    struct Switcher<T1, T2> : IOperators where T1 : struct, IOperators where T2 : struct, IOperators
+    {
+        public void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext
+        {
+            var opMask = (node.Op & 0xF000) >> 12;
+            if (opMask == 0)
+                default(T1).ExecuteOp(node, ref impl);
+            else
+            {
+                Node copy = node;
+                copy.Op = (ushort)((node.Op & 0x0FFF) | ((opMask - 1) << 12));
+                default(T2).ExecuteOp(copy, ref impl);
+            }
+        }
+    }
+
+    static unsafe float3 RunSwitcher(params Node[] nodes)
+    {
+        Evaluator state = new Evaluator();
+        EvaluationGraph graph = new EvaluationGraph(nodes, 1, 2, 0, Allocator.Temp);
+        var job = new EvaluationSwitcherJob
+        {
+            EvaluationGraph = graph,
+            Result = new NativeReference<float3>(Allocator.TempJob)
+        };
+        job.Run();
+        return job.Result.Value;
     }
 
     // A Test behaves as an ordinary method
     [Test]
     public unsafe void Ext()
     {
-        Evaluator state = new Evaluator();
-        EvaluationGraph graph = new EvaluationGraph(new[]
-        {
-            new Node(EvalOp.Const_0, new float3(1, 2, 3)),
-        }, 1, 2, 0, Allocator.Temp);
-        var res = state.Run(graph, new ExtensionOperators(), null, 0);
+        var res = RunSwitcher(new Node(EvalOp.Const_0, new float3(1, 2, 3)));
         Assert.AreEqual(new float3(1, 2, 3), res);
+    }
+    [Test]
+    public unsafe void Ext2()
+    {
+        var res = RunSwitcher(
+            new Node(EvalOp.Const_0, new float3(1, 2, 3)),
+            new Node((ushort)ExtensionOps.Times2, 1)
+        );
+        Assert.AreEqual(new float3(2, 4, 6), res);
     }
     [Test]
     public void ConstFloat3()

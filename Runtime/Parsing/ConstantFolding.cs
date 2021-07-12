@@ -74,7 +74,7 @@ namespace BurstExpressions.Runtime.Parsing
                 _pushed++;
             }
         }
-        public static List<Node> Fold(IEnumerable<Node> nodes)
+        public static List<Node> Fold<TOperators>(IEnumerable<Node> nodes, TOperators operators = default) where TOperators : struct, IOperators
         {
             var current = 0;
             FoldContext ctx = FoldContext.New();
@@ -84,7 +84,7 @@ namespace BurstExpressions.Runtime.Parsing
             {
                 var node = nodes.ElementAt(current);
                 ctx.StartNode(node);
-                Evaluator.ExecuteOp(node, ref ctx);
+                operators.ExecuteOp(node, ref ctx);
                 ctx.EndNode(result, node);
                 current++;
             }

@@ -29,19 +29,19 @@ namespace BurstExpressions.Runtime.Runtime
         [BurstCompile]
         public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
         {
-            res = new Evaluator().Run(graph, ops, @params, parameterCount);
+            res = new Evaluator().Run(graph, ref ops, @params, parameterCount);
         }
 
         public static unsafe void Run<TOperators>(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
         {
-            res = new Evaluator().Run(graph, ops, (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
+            res = new Evaluator().Run(graph, ref ops, (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
         }
 
 
         public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3[] @params, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
         {
             fixed (float3* ptr = @params)
-                res = new Evaluator().Run(graph, ops, ptr, @params.Length);
+                res = new Evaluator().Run(graph, ref ops, ptr, @params.Length);
         }
 
         [BurstCompile]
@@ -85,7 +85,7 @@ namespace BurstExpressions.Runtime.Runtime
         }
 
         [BurstCompile]
-        public unsafe float3 Run<TOperators>(in EvaluationGraph graph, in TOperators operators, float3* @params, int parameterCount) where TOperators : struct, IOperators
+        public unsafe float3 Run<TOperators>(in EvaluationGraph graph, ref TOperators operators, float3* @params, int parameterCount) where TOperators : struct, IOperators
         {
             Assert.AreEqual(parameterCount, graph.ParameterCount);
             using (var stack = new UnsafeList<float3>(graph.MaxStackSize, Allocator.Temp))
@@ -124,7 +124,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             public void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext
             {
-                switch (node.Op)
+                switch ((EvalOp)node.Op)
                 {
                     // unary
                     case EvalOp.Minus_1:
@@ -216,7 +216,7 @@ namespace BurstExpressions.Runtime.Runtime
                         impl.Push(math.length(math.max(q, 0)) + math.min(math.max(q.x, math.max(q.y, q.z)), 0));
                         break;
                     default:
-                        throw new NotImplementedException(string.Format("Operator {0} is not implemented", node.Op));
+                        throw new NotImplementedException(string.Format("Operator {0} is not implemented", (EvalOp)node.Op));
                 }
             }
 

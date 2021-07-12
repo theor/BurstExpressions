@@ -47,14 +47,20 @@ namespace BurstExpressions.Runtime.Runtime
     [Serializable]
     public struct Node
     {
-        public EvalOp Op;
+        public ushort Op;
         public float3 Val;
         public byte Index;
 
         public Node(EvalOp op, float3 val = default)
         {
             Assert.AreNotEqual(EvalOp.Param_0, op);
-            Op = op;
+            Op = (ushort)op;
+            Val = val;
+            Index = 0;
+        }
+        public Node(ushort op, int mask, float3 val = default)
+        {
+            Op = (ushort)(op | (ushort)(mask << 12));
             Val = val;
             Index = 0;
         }
@@ -73,7 +79,7 @@ namespace BurstExpressions.Runtime.Runtime
 
         private Node(EvalOp op, byte index)
         {
-            Op = op;
+            Op = (ushort)op;
             Val = default;
             Index = index;
         }

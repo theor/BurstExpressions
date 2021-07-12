@@ -42,7 +42,7 @@ public class FormulaTest : MonoBehaviour
         // for (int i = 0; i < 100000; i++)
         {
             // res = new float3(math.cos(t * 7), math.sin(t * 7), 0);
-            Evaluator.Run(_evalgraph, parameters, out res);
+            Evaluator.Run(_evalgraph, parameters, out res, default(Evaluator.DefaultOps));
         }
 
         // var ms = sw.ElapsedMilliseconds;
