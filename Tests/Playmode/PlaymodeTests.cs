@@ -51,7 +51,7 @@ namespace Tests.Playmode
 
         private void Update()
         {
-            Evaluator.Run(_evaluationGraph, 42, out Result);
+            Evaluator.Run<Evaluator.DefaultOps>(_evaluationGraph, 42, out Result);
         }
 
     }

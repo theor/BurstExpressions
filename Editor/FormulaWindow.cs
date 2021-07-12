@@ -72,7 +72,7 @@ namespace BurstExpressions.Editor
                 _dirty = true;
             if (_dirty && _evalgraph.Length > 0)
             {
-                Evaluator.Run(_evalgraph, (float3)ParamA, out var res);
+                Evaluator.Run<Evaluator.DefaultOps>(_evalgraph, (float3)ParamA, out var res);
                 Result = res;
                 _dirty = false;
             }

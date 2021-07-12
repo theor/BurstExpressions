@@ -77,6 +77,7 @@ namespace BurstExpressions.Runtime.Parsing
         public static List<Node> Fold(IEnumerable<Node> nodes)
         {
             var current = 0;
+            var defaultOps = default(Evaluator.DefaultOps);
             FoldContext ctx = FoldContext.New();
             List<Node> result = new List<Node>();
             var count = nodes.Count();
@@ -84,7 +85,7 @@ namespace BurstExpressions.Runtime.Parsing
             {
                 var node = nodes.ElementAt(current);
                 ctx.StartNode(node);
-                Evaluator.ExecuteOp(node, ref ctx);
+                defaultOps.ExecuteOp(node, ref ctx);
                 ctx.EndNode(result, node);
                 current++;
             }

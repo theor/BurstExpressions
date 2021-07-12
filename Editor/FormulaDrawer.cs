@@ -4,12 +4,18 @@ using System.Text.RegularExpressions;
 using BurstExpressions.Runtime;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace BurstExpressions.Editor
 {
     [CustomPropertyDrawer(typeof(Formula))]
     public class FormulaDrawer : PropertyDrawer
     {
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
+        {
+            return base.CreatePropertyGUI(property);
+        }
+
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             int i = 2; // input + options
