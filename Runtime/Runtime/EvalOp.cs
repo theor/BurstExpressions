@@ -1,4 +1,4 @@
-namespace Eval.Runtime
+namespace BurstExpressions.Runtime.Runtime
 {
     /// <summary>
     /// Each operator supported in the formula. The suffix is the arity, the number of arguments expected by the

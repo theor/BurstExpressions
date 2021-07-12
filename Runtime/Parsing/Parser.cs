@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
+using BurstExpressions.Runtime.Parsing.AST;
 
-namespace Eval
+namespace BurstExpressions.Runtime.Parsing
 {
     public static class Parser
     {

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Eval.Runtime;
+using BurstExpressions.Runtime.Parsing.AST;
+using BurstExpressions.Runtime.Runtime;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Eval
+namespace BurstExpressions.Runtime.Parsing
 {
     /// <summary>
     /// Translates the AST to a flat array containing the reverse polish notation (RPN) of the expression

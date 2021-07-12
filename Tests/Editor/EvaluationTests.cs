@@ -1,10 +1,48 @@
-using Eval.Runtime;
+using BurstExpressions.Runtime.Runtime;
 using NUnit.Framework;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 public class EvaluationTests : EvaluationTestsBase
 {
+    [BurstCompile]
+    public struct EvaluationJob : IJobParallelFor
+    {
+        public EvaluationGraph EvaluationGraph;
+        public NativeArray<float3> Results;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float3> Params;
+
+        public unsafe void Execute(int index)
+        {
+            Evaluator state = new Evaluator();
+            NativeSlice<float3> nativeSlice = Params.Slice(index * EvaluationGraph.ParameterCount, EvaluationGraph.ParameterCount);
+            Results[index] = state.Run(EvaluationGraph, new Evaluator.DefaultOps(), (float3*)nativeSlice.GetUnsafeReadOnlyPtr(), nativeSlice.Length);
+        }
+    }
+    struct ExtensionOperators : IOperators
+    {
+        public void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
     // A Test behaves as an ordinary method
+    [Test]
+    public unsafe void Ext()
+    {
+        Evaluator state = new Evaluator();
+        EvaluationGraph graph = new EvaluationGraph(new[]
+        {
+            new Node(EvalOp.Const_0, new float3(1, 2, 3)),
+        }, 1, 2, 0, Allocator.Temp);
+        var res = state.Run(graph, new ExtensionOperators(), null, 0);
+        Assert.AreEqual(new float3(1, 2, 3), res);
+    }
     [Test]
     public void ConstFloat3()
     {

@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Eval;
-using Eval.Runtime;
+using BurstExpressions.Runtime;
+using BurstExpressions.Runtime.Parsing;
+using BurstExpressions.Runtime.Runtime;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -12,27 +14,34 @@ public class EvaluationTestsBase
 {
     protected unsafe void Run(float3 result, IEnumerable<Node> nodes, byte expectedFinalStackLength, byte maxStackSize, params float3[] @params)
     {
-        EvalJob j = default;
+        EvaluationTests.EvaluationJob j = default;
         try
         {
-            fixed (float3* paramsPtr = @params)
+            var resultsNativeArray = new NativeArray<float3>(1, Allocator.TempJob);
+            var paramsNativeArray = new NativeArray<float3>(@params ?? new float3[0], Allocator.TempJob);
+            var evaluationGraph = new EvaluationGraph(nodes.ToArray(), expectedFinalStackLength, maxStackSize,
+                (byte)(@params?.Length ?? 0));
+            j = new EvaluationTests.EvaluationJob
             {
-                j = new EvalJob
-                {
-                    EvalGraph = new EvalGraph(nodes.ToArray(), expectedFinalStackLength, maxStackSize),
-                    Result = new NativeReference<float3>(Allocator.TempJob),
-                    Params = paramsPtr,
-                };
-                j.Run();
-            }
+                EvaluationGraph = evaluationGraph,
+                Results = resultsNativeArray,
+                Params = paramsNativeArray,
+            };
+            j.Run(1);
 
-            Debug.Log($"Result: {j.Result.Value}");
-            Assert.AreEqual(result, j.Result.Value);
+            Debug.Log($"Results: {j.Results[0]}");
+            Assert.AreEqual(result, j.Results[0]);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            throw;
         }
         finally
         {
-            j.EvalGraph.Dispose();
-            j.Result.Dispose();
+            j.EvaluationGraph.Dispose();
+            j.Results.Dispose();
+            j.Params.Dispose();
         }
     }
 
@@ -40,7 +49,7 @@ public class EvaluationTestsBase
     {
         var n = Parser.Parse(input, out var err);
         Assert.IsNull(err, err);
-        var nodes = Translator.Translate(n,
+        var nodes = Translator.Translate<Evaluator.DefaultOps>(n,
             variables.Select(x => new FormulaParam(x.Key) { Value = x.Value }).ToList(),
             @params.Select(x => x.Item1).ToList(), out var usedValues,
             simplify ? Translator.TranslationOptions.FoldConstantExpressions : Translator.TranslationOptions.None);

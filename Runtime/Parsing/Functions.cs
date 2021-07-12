@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Eval.Runtime;
+using BurstExpressions.Runtime.Runtime;
 
-namespace Eval
+namespace BurstExpressions.Runtime.Parsing
 {
     public static class Functions
     {

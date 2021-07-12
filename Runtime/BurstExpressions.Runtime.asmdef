@@ -1,6 +1,6 @@
 {
-    "name": "Eval",
-    "rootNamespace": "",
+    "name": "BurstExpressions.Runtime",
+    "rootNamespace": "BurstExpressions.Runtime",
     "references": [
         "Unity.Mathematics",
         "Unity.Burst",

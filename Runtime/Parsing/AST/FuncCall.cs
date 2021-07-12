@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Eval
+namespace BurstExpressions.Runtime.Parsing.AST
 {
     public struct FuncCall : IOp
     {

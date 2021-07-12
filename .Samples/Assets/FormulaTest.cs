@@ -1,12 +1,12 @@
-using Eval;
-using Eval.Runtime;
+using BurstExpressions.Runtime;
+using BurstExpressions.Runtime.Runtime;
 using Unity.Mathematics;
 using UnityEngine;
 
 public class FormulaTest : MonoBehaviour
 {
     public Formula Test;
-    private EvalGraph _evalgraph;
+    private EvaluationGraph _evalgraph;
     public bool LiveEdit;
 
     public void Awake() => Debug.Log("Awake");
@@ -42,7 +42,7 @@ public class FormulaTest : MonoBehaviour
         // for (int i = 0; i < 100000; i++)
         {
             // res = new float3(math.cos(t * 7), math.sin(t * 7), 0);
-            EvalState.Run(_evalgraph, parameters, out res);
+            Evaluator.Run(_evalgraph, parameters, out res);
         }
 
         // var ms = sw.ElapsedMilliseconds;

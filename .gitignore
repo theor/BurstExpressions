@@ -1,10 +1,10 @@
-﻿Samples~/[Ll]ibrary/
-Samples~/[Tt]emp/
-Samples~/[Oo]bj/
-Samples~/[Bb]uild/
-Samples~/[Bb]uilds/
-Samples~/[Ll]ogs/
-Samples~/[Uu]ser[Ss]ettings/
+﻿.Samples/[Ll]ibrary/
+.Samples/[Tt]emp/
+.Samples/[Oo]bj/
+.Samples/[Bb]uild/
+.Samples/[Bb]uilds/
+.Samples/[Ll]ogs/
+.Samples/[Uu]ser[Ss]ettings/
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta

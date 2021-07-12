@@ -1,4 +1,4 @@
-name: Actions 😎
+name: Test/Build
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -10,15 +10,15 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - Samples~
+          - ".Samples"
         unityVersion:
           - 2020.3.13f1
         targetPlatform:
-          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          # - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
           - StandaloneWindows64 # Build a Windows 64-bit standalone.
           - StandaloneLinux64 # Build a Linux 64-bit standalone.
-          - iOS # Build an iOS player.
-          - Android # Build an Android player.
+          # - iOS # Build an iOS player.
+          # - Android # Build an Android player.
           - WebGL # WebGL.
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: Test results (all modes)
+          name: Test results (${{ matrix.targetPlatform }})
           path: ${{ steps.testRunner.outputs.artifactsPath }}
       - uses: game-ci/unity-builder@v2
         env:
@@ -52,7 +52,8 @@ jobs:
           projectPath: ${{ matrix.projectPath }}
           unityVersion: ${{ matrix.unityVersion }}
           targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: '-myParameter myValue -myBoolean -ThirdParameter andItsValue'
+          # customParameters: '-myParameter myValue -myBoolean -ThirdParameter andItsValue'
+          allowDirtyBuild: true
       - uses: actions/upload-artifact@v2
         with:
           name: Build

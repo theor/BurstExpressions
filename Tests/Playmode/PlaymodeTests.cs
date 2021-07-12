@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
-using Eval;
-using Eval.Runtime;
+using BurstExpressions.Runtime;
+using BurstExpressions.Runtime.Runtime;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
@@ -37,21 +37,21 @@ namespace Tests.Playmode
     {
         public Formula Formula;
         public float3 Result;
-        private EvalGraph _evalGraph;
+        private EvaluationGraph _evaluationGraph;
 
         private void Start()
         {
             Formula = new Formula();
             Formula.SetParameters("t");
             Formula.Input = "t";
-            Formula.Compile(out _evalGraph);
+            Formula.Compile(out _evaluationGraph);
         }
 
-        private void OnDestroy() => _evalGraph.Dispose();
+        private void OnDestroy() => _evaluationGraph.Dispose();
 
         private void Update()
         {
-            EvalState.Run(_evalGraph, 42, out Result);
+            Evaluator.Run(_evaluationGraph, 42, out Result);
         }
 
     }

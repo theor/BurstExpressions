@@ -1,6 +1,6 @@
 {
-    "name": "Eval.Editor",
-    "rootNamespace": "",
+    "name": "BurstExpressions.Editor",
+    "rootNamespace": "BurstExpressions.Editor",
     "references": [
         "GUID:7692ed34a73b1fb4792fa24fd49d321b",
         "GUID:d8b63aba1907145bea998dd612889d6b"

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Eval.Runtime;
-using Unity.Collections.LowLevel.Unsafe;
+using BurstExpressions.Runtime.Parsing;
+using BurstExpressions.Runtime.Parsing.AST;
+using BurstExpressions.Runtime.Runtime;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
-namespace Eval
+namespace BurstExpressions.Runtime
 {
     /// <summary>
     /// The class to store in a monobehaviour. Minimal sample:
@@ -15,7 +15,7 @@ namespace Eval
     /// public class FormulaTest : MonoBehaviour
     /// {
     ///     public Formula Test;
-    ///     private EvalGraph _evalgraph;
+    ///     private EvaluationGraph _evalgraph;
     ///   
     ///     public void Reset()
     ///     {
@@ -33,7 +33,7 @@ namespace Eval
     ///           Test.LiveEdit(ref _evalgraph);
     ///           #endif
     ///           float3 t = Time.realtimeSinceStartup;
-    ///           EvalState.Run(_evalgraph, &t, out float3 res);
+    ///           Evaluator.Run(_evalgraph, &t, out float3 res);
     ///           transform.localPosition = res;
     ///       }
     /// }
@@ -62,16 +62,16 @@ namespace Eval
         internal bool _dirty;
 
 
-        public delegate void FormulaChangedCallback(EvalGraph oldGraph, EvalGraph newGraph);
+        public delegate void FormulaChangedCallback(EvaluationGraph oldGraph, EvaluationGraph newGraph);
         [Conditional("UNITY_EDITOR")]
-        public void LiveEdit(ref EvalGraph evalGraph, FormulaChangedCallback onFormulaChanged = null)
+        public void LiveEdit(ref EvaluationGraph evaluationGraph, FormulaChangedCallback onFormulaChanged = null)
         {
             if (_dirty)
             {
                 _dirty = false;
                 Init();
                 _lastFormulaHashCode = Input?.GetHashCode() ?? 0;
-                EvalGraph oldGraph = evalGraph;
+                EvaluationGraph oldGraph = evaluationGraph;
                 if (Content == null)
                 {
                     onFormulaChanged?.Invoke(oldGraph, default);
@@ -80,14 +80,14 @@ namespace Eval
                 }
 
 
-                evalGraph = new EvalGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize);
-                onFormulaChanged?.Invoke(oldGraph, evalGraph);
+                evaluationGraph = new EvaluationGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize, (byte)Params.Count);
+                onFormulaChanged?.Invoke(oldGraph, evaluationGraph);
                 oldGraph.Dispose();
             }
         }
 
 
-        public void Compile(out EvalGraph evalGraph)
+        public void Compile(out EvaluationGraph evaluationGraph)
         {
             if (Content == null || ExpectedFinalStackLength == 0)
                 Init();
@@ -95,13 +95,13 @@ namespace Eval
             // fixed (void* vptr = parsed)
             // {
             //     byte* bptr = (byte*) vptr;
-            //     var byteLength = UnsafeUtility.SizeOf<EvalGraph.Node>() * parsed.Length;
+            //     var byteLength = UnsafeUtility.SizeOf<EvaluationGraph.Node>() * parsed.Length;
             //     Content = new byte[byteLength];
             // }
 
             _lastFormulaHashCode = Input?.GetHashCode() ?? 0;
 
-            evalGraph = new EvalGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize);
+            evaluationGraph = new EvaluationGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize, (byte)Params.Count);
         }
 
         public void Init()

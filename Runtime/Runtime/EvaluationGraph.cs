@@ -4,9 +4,9 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine.Assertions;
 
-namespace Eval.Runtime
+namespace BurstExpressions.Runtime.Runtime
 {
-    public struct EvalGraph : IDisposable
+    public struct EvaluationGraph : IDisposable
     {
         public static unsafe uint4 Hash(Node[] nodes)
         {
@@ -19,16 +19,17 @@ namespace Eval.Runtime
         [NativeDisableUnsafePtrRestriction]
         public unsafe Node* Nodes;
         public ushort Length;
-        public byte ExpectedFinalStackSize, MaxStackSize;
+        public byte ExpectedFinalStackSize, MaxStackSize, ParameterCount;
         private Allocator _allocator;
 
 
-        public unsafe EvalGraph(Node[] nodes, byte expectedFinalStackSize, byte maxStackSize, Allocator allocator = Allocator.Persistent)
+        public unsafe EvaluationGraph(Node[] nodes, byte expectedFinalStackSize, byte maxStackSize, byte parameterCount, Allocator allocator = Allocator.Persistent)
         {
             var size = (ushort)(UnsafeUtility.SizeOf<Node>() * nodes.Length);
             Length = (ushort)nodes.Length;
             ExpectedFinalStackSize = expectedFinalStackSize;
             MaxStackSize = maxStackSize;
+            ParameterCount = parameterCount;
             _allocator = allocator;
             Nodes = (Node*)UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<Node>(),
                 _allocator);

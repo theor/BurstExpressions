@@ -2,10 +2,10 @@
     "name": "Playmode",
     "rootNamespace": "",
     "references": [
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
-        "Eval",
-        "Unity.Mathematics"
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:0acc523941302664db1f4e527237feb3",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:7692ed34a73b1fb4792fa24fd49d321b"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

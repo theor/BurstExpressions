@@ -1,11 +1,11 @@
 using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Microsoft.SqlServer.Server;
+using BurstExpressions.Runtime;
 using UnityEditor;
 using UnityEngine;
 
-namespace Eval.Editor
+namespace BurstExpressions.Editor
 {
     [CustomPropertyDrawer(typeof(Formula))]
     public class FormulaDrawer : PropertyDrawer

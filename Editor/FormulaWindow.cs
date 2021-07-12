@@ -1,9 +1,10 @@
-using Eval.Runtime;
+using BurstExpressions.Runtime;
+using BurstExpressions.Runtime.Runtime;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
-namespace Eval.Editor
+namespace BurstExpressions.Editor
 {
     class FormulaWindow : EditorWindow
     {
@@ -17,7 +18,7 @@ namespace Eval.Editor
         private Formula Formula;
 
         private UnityEditor.Editor _e;
-        private EvalGraph _evalgraph;
+        private EvaluationGraph _evalgraph;
         private Vector3 ParamA;
         private Vector3 Result;
         private bool _dirty;
@@ -71,7 +72,7 @@ namespace Eval.Editor
                 _dirty = true;
             if (_dirty && _evalgraph.Length > 0)
             {
-                EvalState.Run(_evalgraph, (float3)ParamA, out var res);
+                Evaluator.Run(_evalgraph, (float3)ParamA, out var res);
                 Result = res;
                 _dirty = false;
             }

@@ -1,6 +1,6 @@
 using System;
 
-namespace Eval
+namespace BurstExpressions.Runtime.Parsing
 {
     [Flags]
     public enum Token

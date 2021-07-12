@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Eval.Runtime;
+using BurstExpressions.Runtime.Runtime;
 using Unity.Mathematics;
 
-namespace Eval
+namespace BurstExpressions.Runtime.Parsing
 {
     public static class ConstantFolding
     {
@@ -84,7 +84,7 @@ namespace Eval
             {
                 var node = nodes.ElementAt(current);
                 ctx.StartNode(node);
-                EvalState.ExecuteOp(node, ref ctx);
+                Evaluator.ExecuteOp(node, ref ctx);
                 ctx.EndNode(result, node);
                 current++;
             }
