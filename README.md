@@ -59,6 +59,8 @@ public class FormulaTest : MonoBehaviour
 }
 ```
 
+For a more advanced use case, see `BatchFormulaTest`, which runs the evaluation in a burst compiled job, batched, and does not allocate.
+
 ## Performance
 
 The sample scene in `BatchTest` uses a MonoBehaviour called `BatchFormulaTest`, which sets the position of 10 000 cubes with the following formula: `v3(i, sin(t*14 + i)*15, 0)` with `i` being the instance index and `t` the real time elapsed since startup.
