@@ -24,16 +24,16 @@ namespace BurstExpressions.Runtime.Parsing
             private int _popped, _pushed;
             private bool _foldable;
 
-            public void StartNode(Node n)
+            public void StartNode(EvaluationInstruction n)
             {
                 _popped = _pushed = 0;
                 _foldable = true;
             }
 
-            public void EndNode(List<Node> nodes, Node node)
+            public void EndNode(List<EvaluationInstruction> nodes, EvaluationInstruction instr)
             {
                 if (!_foldable)
-                    nodes.Add(node);
+                    nodes.Add(instr);
                 else
                 {
                     for (int i = 0; i < _popped; i++)
@@ -42,7 +42,7 @@ namespace BurstExpressions.Runtime.Parsing
                     }
                     for (int i = 0; i < _pushed; i++)
                     {
-                        nodes.Add(new Node(EvalOp.Const_0, Stack[Stack.Count - _pushed + i].Value));
+                        nodes.Add(new EvaluationInstruction(EvalOp.Const_0, Stack[Stack.Count - _pushed + i].Value));
                     }
                 }
             }
@@ -74,12 +74,12 @@ namespace BurstExpressions.Runtime.Parsing
                 _pushed++;
             }
         }
-        public static List<Node> Fold(IEnumerable<Node> nodes)
+        public static List<EvaluationInstruction> Fold(IEnumerable<EvaluationInstruction> nodes)
         {
             var current = 0;
             var defaultOps = default(Evaluator.DefaultOps);
             FoldContext ctx = FoldContext.New();
-            List<Node> result = new List<Node>();
+            List<EvaluationInstruction> result = new List<EvaluationInstruction>();
             var count = nodes.Count();
             while (current < count)
             {
@@ -91,7 +91,7 @@ namespace BurstExpressions.Runtime.Parsing
             }
 
             return result;
-            // switch (node)
+            // switch (instr)
             // {
             //     case ExpressionValue expressionValue:
             //         break;
@@ -106,7 +106,7 @@ namespace BurstExpressions.Runtime.Parsing
             //     case Variable variable:
             //         break;
             //     default:
-            //         throw new ArgumentOutOfRangeException(nameof(node));
+            //         throw new ArgumentOutOfRangeException(nameof(instr));
             // }
             throw new System.NotImplementedException();
         }

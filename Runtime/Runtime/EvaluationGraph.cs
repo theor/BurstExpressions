@@ -8,32 +8,32 @@ namespace BurstExpressions.Runtime.Runtime
 {
     public struct EvaluationGraph : IDisposable
     {
-        public static unsafe uint4 Hash(Node[] nodes)
+        public static unsafe uint4 Hash(EvaluationInstruction[] nodes)
         {
             if (nodes == null || nodes.Length == 0)
                 return uint4.zero;
-            fixed (Node* p = nodes)
-                return xxHash3.Hash128(p, UnsafeUtility.SizeOf<Node>() * nodes.Length);
+            fixed (EvaluationInstruction* p = nodes)
+                return xxHash3.Hash128(p, UnsafeUtility.SizeOf<EvaluationInstruction>() * nodes.Length);
         }
 
         [NativeDisableUnsafePtrRestriction]
-        public unsafe Node* Nodes;
+        public unsafe EvaluationInstruction* Nodes;
         public ushort Length;
         public byte ExpectedFinalStackSize, MaxStackSize, ParameterCount;
         private Allocator _allocator;
 
 
-        public unsafe EvaluationGraph(Node[] nodes, byte expectedFinalStackSize, byte maxStackSize, byte parameterCount, Allocator allocator = Allocator.Persistent)
+        public unsafe EvaluationGraph(EvaluationInstruction[] nodes, byte expectedFinalStackSize, byte maxStackSize, byte parameterCount, Allocator allocator = Allocator.Persistent)
         {
-            var size = (ushort)(UnsafeUtility.SizeOf<Node>() * nodes.Length);
+            var size = (ushort)(UnsafeUtility.SizeOf<EvaluationInstruction>() * nodes.Length);
             Length = (ushort)nodes.Length;
             ExpectedFinalStackSize = expectedFinalStackSize;
             MaxStackSize = maxStackSize;
             ParameterCount = parameterCount;
             _allocator = allocator;
-            Nodes = (Node*)UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<Node>(),
+            Nodes = (EvaluationInstruction*)UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<EvaluationInstruction>(),
                 _allocator);
-            fixed (Node* ptr = nodes)
+            fixed (EvaluationInstruction* ptr = nodes)
                 UnsafeUtility.MemCpy(Nodes, ptr, size);
         }
 
@@ -45,13 +45,13 @@ namespace BurstExpressions.Runtime.Runtime
     }
 
     [Serializable]
-    public struct Node
+    public struct EvaluationInstruction
     {
         public EvalOp Op;
         public float3 Val;
         public byte Index;
 
-        public Node(EvalOp op, float3 val = default)
+        public EvaluationInstruction(EvalOp op, float3 val = default)
         {
             Assert.AreNotEqual(EvalOp.Param_0, op);
             Op = op;
@@ -59,19 +59,19 @@ namespace BurstExpressions.Runtime.Runtime
             Index = 0;
         }
 
-        public static Node Param(byte index)
+        public static EvaluationInstruction Param(byte index)
         {
             Assert.AreNotEqual((byte)0, index, "Index must be in base1");
-            return new Node(EvalOp.Param_0, index);
+            return new EvaluationInstruction(EvalOp.Param_0, index);
         }
 
-        public static Node Ld(byte index)
+        public static EvaluationInstruction Ld(byte index)
         {
             Assert.AreNotEqual((byte)0, index, "Index must be in base1");
-            return new Node(EvalOp.Ld_0, index);
+            return new EvaluationInstruction(EvalOp.Ld_0, index);
         }
 
-        private Node(EvalOp op, byte index)
+        private EvaluationInstruction(EvalOp op, byte index)
         {
             Op = op;
             Val = default;

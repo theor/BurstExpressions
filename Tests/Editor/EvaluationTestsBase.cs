@@ -12,7 +12,7 @@ using UnityEngine.Assertions;
 
 public class EvaluationTestsBase
 {
-    protected unsafe void Run(float3 result, IEnumerable<Node> nodes, byte expectedFinalStackLength, byte maxStackSize, params float3[] @params)
+    protected unsafe void Run(float3 result, IEnumerable<EvaluationInstruction> nodes, byte expectedFinalStackLength, byte maxStackSize, params float3[] @params)
     {
         EvaluationTests.EvaluationJob j = default;
         try
@@ -47,8 +47,8 @@ public class EvaluationTestsBase
 
     protected void ParseRun(float3 result, bool simplify, string input, Dictionary<string, float3> variables, params (string, float3)[] @params)
     {
-        var n = Parser.Parse(input, out var err);
-        Assert.IsNull(err, err);
+        if (!Parser.TryParse(input, out var n, out var err))
+            Assert.IsTrue(false, err.ToString());
         var nodes = Translator.Translate(n,
             variables.Select(x => new FormulaParam(x.Key) { Value = x.Value }).ToList(),
             @params.Select(x => x.Item1).ToList(), out var usedValues,

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using BurstExpressions.Runtime.Parsing;
-using BurstExpressions.Runtime.Parsing.AST;
 using BurstExpressions.Runtime.Runtime;
 using UnityEngine;
 
@@ -51,7 +50,7 @@ namespace BurstExpressions.Runtime
         [SerializeField]
         private int ExpectedFinalStackLength;
         private const byte MaxStackSize = 10;
-        [SerializeField] internal Node[] Content;
+        [SerializeField] internal EvaluationInstruction[] Content;
         public List<FormulaParam> NamedValues;
         public List<string> Params;
 
@@ -92,13 +91,6 @@ namespace BurstExpressions.Runtime
             if (Content == null || ExpectedFinalStackLength == 0)
                 Init();
 
-            // fixed (void* vptr = parsed)
-            // {
-            //     byte* bptr = (byte*) vptr;
-            //     var byteLength = UnsafeUtility.SizeOf<EvaluationGraph.Node>() * parsed.Length;
-            //     Content = new byte[byteLength];
-            // }
-
             _lastFormulaHashCode = Input?.GetHashCode() ?? 0;
 
             evaluationGraph = new EvaluationGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize, (byte)Params.Count);
@@ -107,22 +99,25 @@ namespace BurstExpressions.Runtime
         public void Init()
         {
             bool cleanup =
-                    false
 #if UNITY_EDITOR
-                    || !UnityEditor.EditorApplication.isPlaying
+                    !UnityEditor.EditorApplication.isPlaying
+#else
+                    false
 #endif
                 ;
 
 
-            var root = Parser.Parse(Input, out _error);
-            // Debug.Log($"PARSING cleanup={cleanup} error={_error}");
-            if (_error != null)
+            if (!Parser.TryParse(Input, out var root, out var error))
             {
+                _error = error.ToString();
                 Content = null;
                 return;
             }
+
+            _error = null;
+            // Debug.Log($"PARSING cleanup={cleanup} error={_error}");
             Translator.Variables v = null;
-            Node[] parsed = null;
+            EvaluationInstruction[] parsed = null;
             if (root != null)
             {
                 if (NamedValues != null)
@@ -168,45 +163,6 @@ namespace BurstExpressions.Runtime
                 Params.Clear();
                 Params.AddRange(formulaParams);
             }
-        }
-    }
-
-    [Serializable]
-    public struct FormulaParam
-    {
-        public enum FormulaParamFlag
-        {
-            Vector3,
-            Float,
-            Formula,
-        }
-        public string Name;
-        public Vector3 Value;
-        public FormulaParamFlag IsSingleFloat;
-        [Delayed]
-        public string SubFormula;
-        public string SubFormulaError { get; private set; }
-        public INode SubFormulaNode { get; private set; }
-
-        public static FormulaParam FromSubFormula(string name, INode subformula)
-        {
-            return new FormulaParam(name, FormulaParamFlag.Formula) { SubFormulaNode = subformula };
-        }
-
-        public void ParseSubFormula()
-        {
-            SubFormulaNode = Parser.Parse(SubFormula, out var error);
-            SubFormulaError = error;
-        }
-
-        public FormulaParam(string name, FormulaParamFlag isSingleFloat = FormulaParamFlag.Vector3)
-        {
-            Name = name;
-            Value = default;
-            IsSingleFloat = isSingleFloat;
-            SubFormula = null;
-            SubFormulaNode = null;
-            SubFormulaError = null;
         }
     }
 }

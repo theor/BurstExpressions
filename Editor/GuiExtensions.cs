@@ -17,7 +17,7 @@ namespace BurstExpressions.Editor
             var transparent = new Color(1, 1, 0, 0);
             _transparentTextFieldStyle = new GUIStyle(EditorStyles.textField)
             {
-                richText = true,
+                // richText = true,
                 normal = { textColor = transparent },
                 hover = { textColor = transparent },
                 active = { textColor = transparent },

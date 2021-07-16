@@ -23,7 +23,7 @@ namespace BurstExpressions.Runtime.Parsing
         {
             // Ld_0 op index, base 1
             public int Index;
-            public List<Node> Translated;
+            public List<EvaluationInstruction> Translated;
             // instead of computing the subformula once and loading the cached result with LD, recompute it everytime
             public bool Inline;
         }
@@ -45,10 +45,10 @@ namespace BurstExpressions.Runtime.Parsing
             None = 0,
             FoldConstantExpressions = 1,
         }
-        public static Node[] Translate(INode node, List<FormulaParam> variables, List<string> parameters,
+        public static EvaluationInstruction[] Translate(INode node, List<FormulaParam> variables, List<string> parameters,
             out Variables v, TranslationOptions options = TranslationOptions.None)
         {
-            List<Node> nodes = new List<Node>();
+            List<EvaluationInstruction> nodes = new List<EvaluationInstruction>();
             v = new Variables();
             Rec(nodes, variables, node, parameters, v, options);
             int insertIndex = 0;
@@ -60,19 +60,19 @@ namespace BurstExpressions.Runtime.Parsing
             return (options & TranslationOptions.FoldConstantExpressions) != 0 ? ConstantFolding.Fold(nodes).ToArray() : nodes.ToArray();
         }
 
-        private static void Rec(List<Node> nodes, List<FormulaParam> variables, INode node,
+        private static void Rec(List<EvaluationInstruction> nodes, List<FormulaParam> variables, INode node,
             List<string> formulaParams, Variables variableInfos, TranslationOptions translationOptions)
         {
 
             switch (node)
             {
                 case ExpressionValue v:
-                    nodes.Add(new Node(EvalOp.Const_0, v.F));
+                    nodes.Add(new EvaluationInstruction(EvalOp.Const_0, v.F));
                     break;
                 case Variable variable:
                     var paramIndex = formulaParams == null ? -1 : formulaParams.IndexOf(variable.Id);
                     if (paramIndex >= 0)
-                        nodes.Add(Node.Param((byte)(paramIndex + 1)));
+                        nodes.Add(EvaluationInstruction.Param((byte)(paramIndex + 1)));
                     else // not a param, but a user created variable (named value)
                     {
                         var flag = variable.Id.StartsWith("f", StringComparison.OrdinalIgnoreCase)
@@ -95,7 +95,7 @@ namespace BurstExpressions.Runtime.Parsing
                             // SUB FORMULA
                             if (variableParam.IsSingleFloat == FormulaParam.FormulaParamFlag.Formula)
                             {
-                                info.Translated = new List<Node>();
+                                info.Translated = new List<EvaluationInstruction>();
                                 if (info.Translated == null && string.IsNullOrEmpty(variableParam.SubFormulaError))
                                     variableParam.ParseSubFormula();
                                 Rec(info.Translated, variables, variableParam.SubFormulaNode, formulaParams, variableInfos, translationOptions);
@@ -128,7 +128,7 @@ namespace BurstExpressions.Runtime.Parsing
                                 if (info.Index == 0)
                                     throw new InvalidDataException(
                                         $"The definition of variable '{variable.Id}' is recursive, aborting");
-                                nodes.Add(Node.Ld((byte)info.Index));
+                                nodes.Add(EvaluationInstruction.Ld((byte)info.Index));
                             }
                         }
                         else
@@ -139,7 +139,7 @@ namespace BurstExpressions.Runtime.Parsing
                                 FormulaParam.FormulaParamFlag.Vector3 => (float3)variableParam.Value,
                                 _ => throw new System.NotImplementedException(),
                             };
-                            nodes.Add(new Node(EvalOp.Const_0, v));
+                            nodes.Add(new EvaluationInstruction(EvalOp.Const_0, v));
                         }
                     }
 
@@ -149,7 +149,7 @@ namespace BurstExpressions.Runtime.Parsing
                     if (u.Type == OpType.Plus)
                         break;
                     if (u.Type == OpType.Minus)
-                        nodes.Add(new Node(EvalOp.Minus_1));
+                        nodes.Add(new EvaluationInstruction(EvalOp.Minus_1));
                     else
                         throw new NotImplementedException(u.Type.ToString());
                     break;
@@ -157,7 +157,7 @@ namespace BurstExpressions.Runtime.Parsing
                     // reverse order
                     Rec(nodes, variables, bin.B, formulaParams, variableInfos, translationOptions);
                     Rec(nodes, variables, bin.A, formulaParams, variableInfos, translationOptions);
-                    nodes.Add(new Node(bin.Type switch
+                    nodes.Add(new EvaluationInstruction(bin.Type switch
                     {
                         OpType.Add => EvalOp.Add_2,
                         OpType.Sub => EvalOp.Sub_2,
@@ -184,7 +184,7 @@ namespace BurstExpressions.Runtime.Parsing
                     var overload = overloads[overloadIndex];
 
                     CheckArgCount(overload.ArgumentCount);
-                    nodes.Add(new Node(overload.OpCode));
+                    nodes.Add(new EvaluationInstruction(overload.OpCode));
                     break;
 
                 default:

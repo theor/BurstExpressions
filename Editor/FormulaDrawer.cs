@@ -1,8 +1,8 @@
 using System;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using BurstExpressions.Runtime;
+using BurstExpressions.Runtime.Parsing;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,17 +11,9 @@ namespace BurstExpressions.Editor
     [CustomPropertyDrawer(typeof(Formula))]
     public class FormulaDrawer : PropertyDrawer
     {
-        public override VisualElement CreatePropertyGUI(SerializedProperty property)
-        {
-            return base.CreatePropertyGUI(property);
-        }
-
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             int i = 2; // input + options
-            // if (property.propertyType == SerializedPropertyType.ManagedReference)
-            // {
-            //     var formulaObject = new SerializedObject(property.objectReferenceValue);
             var namedValues = property.FindPropertyRelative(nameof(Formula.NamedValues));
             i += namedValues.arraySize;
             var paramsProp = property.FindPropertyRelative(nameof(Formula.Params));
@@ -36,15 +28,10 @@ namespace BurstExpressions.Editor
                     if (!String.IsNullOrEmpty(formulaNamedValue.SubFormulaError))
                         i++;
                 }
-            // }
-            // else
-            //     return base.GetPropertyHeight(property, label);
 
             return EditorGUIUtility.singleLineHeight * i;
         }
 
-        private string _lastInput, _lastColoredInput;
-        // Draw the property inside the given rect
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var formula = (Formula)property.GetSerializedObject();
@@ -63,6 +50,7 @@ namespace BurstExpressions.Editor
                 }
                 formula.Init();
                 formula._dirty = true;
+                GUIUtility.ExitGUI();
             }
 
             EditorGUI.BeginProperty(position, label, property);
@@ -72,59 +60,16 @@ namespace BurstExpressions.Editor
 
             EditorGUI.BeginChangeCheck();
 
-            // formula.Input = GuiExtensions.RichTextField(rect, formula.Input, _lastColoredInput);
             EditorGUI.PropertyField(rect, property.FindPropertyRelative(nameof(Formula.Input)), label);
             rect.y += EditorGUIUtility.singleLineHeight;
             EditorGUI.PropertyField(rect, property.FindPropertyRelative(nameof(Formula.Options)));
-            if (EditorGUI.EndChangeCheck())// || _lastInput != formula.Input)
+            if (EditorGUI.EndChangeCheck())
             {
-                // Debug.Log("CHANGE");
-                // try
-                // {
-                //   var node = Parser.Parse(formula.Input, out _);
-                //   if (node != null)
-                //   {
-                //       var formatted = Formatter.Format(node, Formatter.FormatFlags.NoVariablePrefix);
-                //       bool diff = formatted != formula.Input;
-                //       formula.Input = formatted;
-                //       _lastColoredInput = Formatter.Format(node,
-                //           Formatter.FormatFlags.DifferentColorPerNode |
-                //           Formatter.FormatFlags.NoVariablePrefix);
-                //       
-                //       if(diff)
-                //       {
-                //           var editor =
-                //               typeof(EditorGUI)
-                //                   .GetField("activeEditor", BindingFlags.Static | BindingFlags.NonPublic)
-                //                   .GetValue(null) as TextEditor;
-                //               //(TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
-                //           Debug.LogWarning($"DIFF {editor.text}");// + EditorGUIUtility.sele;
-                //           editor.SelectAll();
-                //           editor.ReplaceSelection(formula.Input);
-                //           // _lastInput = formula.Input;
-                //           // EditorGUIUtility.ExitGUI();
-                //       }
-                //   }
-                //   else
-                //       _lastColoredInput = null;
-                //   // formula.Input = _lastInput ?? formula.Input;
-                // }
-                // catch(Exception ex)
-                // {
-                //     if (ex is ExitGUIException)
-                //         throw;
-                //     _lastColoredInput = null;
-                // }
-                // _lastInput = formula.Input;
-
-                // property.FindPropertyRelative(nameof(Formula.Input)).stringValue = _lastInput;
                 UpdateInstance(formulaObject);
-                // formulaObject.Update();
-                // Debug.Log(EditorJsonUtility.ToJson(formulaObject.targetObject));
             }
 
             EditorGUI.indentLevel++;
-            var e = ((Formula)formula)._error;
+            var e = formula._error;
             if (!string.IsNullOrEmpty(e))
             {
                 rect.y += EditorGUIUtility.singleLineHeight;
@@ -144,7 +89,6 @@ namespace BurstExpressions.Editor
                 r2.x += EditorGUIUtility.fieldWidth;
                 EditorGUI.LabelField(r2, "Parameter");
             }
-
 
             for (int i = 0; i < namedValues.arraySize; i++)
             {
@@ -198,54 +142,6 @@ namespace BurstExpressions.Editor
             EditorGUI.indentLevel--;
 
             EditorGUI.EndProperty();
-        }
-    }
-
-    public static class DrawerExtensions
-    {
-        public static object GetSerializedObject(this SerializedProperty property)
-        {
-            return property.serializedObject.GetChildObject(property.propertyPath);
-        }
-
-        private static readonly Regex matchArrayElement = new Regex(@"^data\[(\d+)\]$");
-        public static object GetChildObject(this SerializedObject serializedObject, string path)
-        {
-            object propertyObject = serializedObject.targetObject;
-
-            if (path != "" && propertyObject != null)
-            {
-                string[] splitPath = path.Split('.');
-                FieldInfo field = null;
-
-                foreach (string pathNode in splitPath)
-                {
-                    if (field != null && field.FieldType.IsArray)
-                    {
-                        if (pathNode.Equals("Array"))
-                            continue;
-
-                        Match elementMatch = matchArrayElement.Match(pathNode);
-                        int index;
-                        if (elementMatch.Success && int.TryParse(elementMatch.Groups[1].Value, out index))
-                        {
-                            field = null;
-                            object[] objectArray = (object[])propertyObject;
-                            if (objectArray != null && index < objectArray.Length)
-                                propertyObject = ((object[])propertyObject)[index];
-                            else
-                                return null;
-                        }
-                    }
-                    else
-                    {
-                        field = propertyObject.GetType().GetField(pathNode, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                        propertyObject = field.GetValue(propertyObject);
-                    }
-                }
-            }
-
-            return propertyObject;
         }
     }
 }

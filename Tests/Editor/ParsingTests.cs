@@ -3,12 +3,43 @@ using System.Collections.Generic;
 using BurstExpressions.Runtime.Parsing;
 using BurstExpressions.Runtime.Parsing.AST;
 using NUnit.Framework;
+using Unity.Burst;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Tests.Editor
 {
     class ParsingTests
     {
+        [BurstCompile]
+        public struct GotoJob : IJob
+        {
+            public static void F()
+            {
+
+            }
+            public unsafe void Execute()
+            {
+                // Unity.Burst.Intrinsics.Common.
+                // var x = &F;
+                // var x = loop;
+                // int i = 5;
+                // loop:
+                // if (i == 0)
+                //     goto end;
+                // Debug.Log(string.Format("{0}", i));
+                // i--;
+                // goto loop;
+                // end:
+                // Debug.Log("Done");
+            }
+        }
+
+        [Test]
+        public void Test3()
+        {
+            new GotoJob { }.Run();
+        }
         [Test]
         public void Test()
         {
@@ -59,7 +90,7 @@ namespace Tests.Editor
         [TestCaseSource("Cases")]
         public void Format(string input, string expectedFormat, float? _)
         {
-            var node = Parser.Parse(input, out var error);
+            Assert.IsTrue(Parser.TryParse(input, out var node, out var err), err.ToString());
             void PrintFormat(Formatter.FormatFlags formatFlags) => Debug.Log(formatFlags + ":\n" + Formatter.Format(node, formatFlags));
             PrintFormat(Formatter.FormatFlags.None);
             PrintFormat(Formatter.FormatFlags.Colors);
@@ -71,11 +102,7 @@ namespace Tests.Editor
         [TestCaseSource("Cases")]
         public void Parse(string input, string expectedFormat, float? result = null)
         {
-            INode parsed = Parser.Parse(input, out var err);
-            if (!string.IsNullOrEmpty(err))
-            {
-                Debug.Log(err);
-            }
+            Assert.IsTrue(Parser.TryParse(input, out var parsed, out var err), err.ToString());
 
             var format = Formatter.Format(parsed, Formatter.FormatFlags.ParensAroundBinaryOperators);
             Debug.Log(format);

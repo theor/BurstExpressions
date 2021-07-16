@@ -64,7 +64,7 @@ public class ParsingEvaluationTests : EvaluationTestsBase
     [TestCase("p * 2 + p")]
     public void Simplify(string input)
     {
-        var n = Parser.Parse(input, out _);
+        Assert.IsTrue(Parser.TryParse(input, out var n, out var err), err.ToString());
         var folded = Translator.Translate(n, new List<FormulaParam> { new FormulaParam("p") { Value = Vector3.one } }, new List<string> { "x" }, out _, Translator.TranslationOptions.FoldConstantExpressions);
         Debug.Log(Formatter.Format(n, Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.ParensAroundBinaryOperators));
         Debug.Log(String.Join("\n", folded));
@@ -81,15 +81,12 @@ public class ParsingEvaluationTests : EvaluationTestsBase
         => ParseRunSubFormulasSimplify(valid, true, mainFormula, result, formulas);
     public void ParseRunSubFormulasSimplify(bool valid, bool simplify, string mainFormula, float3 result, params (string variable, string formula)[] formulas)
     {
-        var main = Parser.Parse(mainFormula, out var err);
-        Assert.IsNull(err);
-
+        Assert.IsTrue(Parser.TryParse(mainFormula, out var main, out var err), err.ToString());
 
         var formulaParams = new List<FormulaParam>();
         foreach (var formula in formulas)
         {
-            var x = Parser.Parse(formula.formula, out var xErr);
-            Assert.IsNull(xErr);
+            Assert.IsTrue(Parser.TryParse(formula.formula, out var x, out var xErr), err.ToString());
             formulaParams.Add(FormulaParam.FromSubFormula(formula.variable, x));
         }
         formulaParams.Sort(Translator.FormulaParamsCompareByName);
@@ -115,10 +112,8 @@ public class ParsingEvaluationTests : EvaluationTestsBase
     public void TestSubFormulas()
     {
         string input = "x+x";
-        var main = Parser.Parse(input, out var err);
-        var x = Parser.Parse("5", out var xErr);
-        Assert.IsNull(err);
-        Assert.IsNull(xErr);
+        Assert.IsTrue(Parser.TryParse(input, out var main, out var err), err.ToString());
+        Assert.IsTrue(Parser.TryParse("5", out var x, out var xErr), err.ToString());
         var nodes = Translator.Translate(main, new List<FormulaParam>
         {
             FormulaParam.FromSubFormula("x", x)

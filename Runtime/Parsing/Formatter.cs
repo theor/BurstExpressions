@@ -129,7 +129,10 @@ namespace BurstExpressions.Runtime.Parsing
                     options.Indent--;
                     return Colorize($"{f.Id}({joinedArgs}{Break(options, ")")}", options.Colors.Function, ref options);
                 default:
-                    throw new NotImplementedException(n.ToString());
+                    if (n == null)
+                        return "";
+                    else
+                        throw new NotImplementedException(n.ToString());
             }
         }
 

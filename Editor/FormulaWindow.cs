@@ -22,7 +22,6 @@ namespace BurstExpressions.Editor
         private Vector3 ParamA;
         private Vector3 Result;
         private bool _dirty;
-        private string _text;
 
         private void OnEnable()
         {
@@ -31,7 +30,6 @@ namespace BurstExpressions.Editor
                 Formula = new Formula();
             Formula.SetParameters("a");
             _dirty = true;
-            _text = "test";
         }
 
         string Format(string input)

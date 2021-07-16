@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using BurstExpressions.Runtime.Parsing.AST;
@@ -8,6 +9,48 @@ namespace BurstExpressions.Runtime.Parsing
 {
     public static class Parser
     {
+        public enum ErrorKind
+        {
+            None,
+            ClosingParenMissing,
+            TuplesNotSupported,
+            MismatchedParens,
+            MissingOperand,
+            UnknownUnaryOperator,
+            UnknownBinaryOperator,
+        }
+
+        public readonly struct Error
+        {
+            public readonly ErrorKind Kind;
+            public readonly string Argument;
+            public readonly int Location;
+
+            public Error(ErrorKind kind, int location, string argument)
+            {
+                Kind = kind;
+                Argument = argument;
+                Location = location;
+            }
+
+            public override string ToString()
+            {
+                string msg = Kind switch
+                {
+                    ErrorKind.None => "None",
+                    ErrorKind.ClosingParenMissing => "Closing paren missing",
+                    ErrorKind.TuplesNotSupported => "Tuples not supported",
+                    ErrorKind.MismatchedParens => "Mismatched parens",
+                    ErrorKind.MissingOperand => $"Missing operand for the {Argument} operator in the expression",
+                    ErrorKind.UnknownUnaryOperator => $"Cannot match unary operator '{Argument}'",
+                    ErrorKind.UnknownBinaryOperator => $"Cannot match binary operator '{Argument}'",
+                    _ => throw new ArgumentOutOfRangeException()
+                }
+                    ;
+                return $"At {Location}: {msg}";
+            }
+        }
+
         internal struct Operator
         {
             public readonly OpType Type;
@@ -51,41 +94,58 @@ namespace BurstExpressions.Runtime.Parsing
             {OpType.Minus, new Operator(OpType.Minus, "-", 2000, Associativity.Right, unary: true)},
         };
 
-        static Operator ReadOperator(string input, bool unary)
+        static INode ReturnError(INode node, int location, ref Error error, ErrorKind kind, string argument = null)
+        {
+            error = new Error(kind, location, argument);
+            return node;
+        }
+
+        static bool ReadOperator(Reader r, bool unary, out Operator @operator, ref Error error)
         {
             foreach (var o in Ops)
             {
-                if (o.Value.Str == input && o.Value.Unary == unary)
-                    return o.Value;
+                if (o.Value.Str == r.CurrentToken && o.Value.Unary == unary)
+                {
+                    @operator = o.Value;
+                    return true;
+                }
             }
 
-            throw new InvalidDataException($"Cannot match operator '{(unary ? "u" : "bi")}nary {input}'");
+            error = new Error(unary ? ErrorKind.UnknownUnaryOperator : ErrorKind.UnknownBinaryOperator, r.CurrentTokenIndex, r.CurrentToken);
+            @operator = default;
+            return false;
         }
 
-        public static INode Parse(string s, out string error)
+        public static bool TryParse(string s, out INode node, out Error error)
         {
+            node = null;
             if (s == null)
             {
-                error = null;
-                return null;
+                error = default;
+                return true;
             }
             var output = new Stack<INode>();
             var opStack = new Stack<Operator>();
 
             Reader r = new Reader(s);
 
-            try
-            {
-                r.ReadToken();
-                error = null;
-                return ParseUntil(r, opStack, output, Token.None, 0);
-            }
-            catch (Exception e)
-            {
-                error = $"{r.CurrentTokenIndex}: {e.Message}";
-                return null;
-            }
+            r.ReadToken();
+            error = default;
+            node = ParseUntil(r, opStack, output, Token.None, 0, out error);
+            return error.Kind == ErrorKind.None;
+
         }
+        // public static INode Parse(string s, out string error)
+        // {
+        //     error = null;
+        //     if (TryParse(s, out var node, out var err))
+        //     {
+        //         return node;
+        //     }
+        //
+        //     error = err.ToString();
+        //     return node;
+        // }
 
         public static bool TryPeek<T>(this Stack<T> stack, out T t)
         {
@@ -100,8 +160,9 @@ namespace BurstExpressions.Runtime.Parsing
         }
 
         private static INode ParseUntil(Reader r, Stack<Operator> opStack, Stack<INode> output, Token readUntilToken,
-            int startOpStackSize)
+            int startOpStackSize, out Error error)
         {
+            error = default;
             do
             {
                 switch (r.CurrentTokenType)
@@ -111,34 +172,36 @@ namespace BurstExpressions.Runtime.Parsing
                             opStack.Push(Ops[OpType.LeftParens]);
                             r.ReadToken();
                             INode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
-                                opStack.Count);
+                                opStack.Count, out error);
                             if (r.CurrentTokenType == Token.Coma)
-                                throw new InvalidDataException("Tuples not supported");
+                                return ReturnError(arg, r.CurrentTokenIndex, ref error, ErrorKind.TuplesNotSupported);
                             if (r.CurrentTokenType != Token.RightParens)
-                                throw new InvalidDataException("Mismatched parens, missing a closing parens");
+                                return ReturnError(arg, r.CurrentTokenIndex, ref error, ErrorKind.ClosingParenMissing);
                             output.Push(arg);
 
                             while (opStack.TryPeek(out var stackOp) && stackOp.Type != OpType.LeftParens)
                             {
                                 opStack.Pop();
-                                PopOpOpandsAndPushNode(stackOp);
+                                if (!PopOpOpandsAndPushNode(stackOp, ref error))
+                                    return output.Peek();
                             }
 
                             if (opStack.TryPeek(out var leftParens) && leftParens.Type == OpType.LeftParens)
                                 opStack.Pop();
                             else
-                                throw new InvalidDataException("Mismatched parens");
+                                return ReturnError(arg, r.CurrentTokenIndex, ref error, ErrorKind.MismatchedParens);
                             r.ReadToken();
                             break;
                         }
                     case Token.RightParens:
-                        throw new InvalidDataException("Mismatched parens");
+                        return ReturnError(default, r.CurrentTokenIndex, ref error, ErrorKind.MismatchedParens);
                     case Token.Op:
                         {
                             bool unary = r.PrevTokenType == Token.Op ||
                                          r.PrevTokenType == Token.LeftParens ||
                                          r.PrevTokenType == Token.None;
-                            var readBinOp = ReadOperator(r.CurrentToken, unary);
+                            if (!ReadOperator(r, unary, out var readBinOp, ref error))
+                                return null;
 
                             while (opStack.TryPeek(out var stackOp) &&
                                    // the operator at the top of the operator stack is not a left parenthesis or coma
@@ -150,7 +213,8 @@ namespace BurstExpressions.Runtime.Parsing
                                     readBinOp.Associativity == Associativity.Left))
                             {
                                 opStack.Pop();
-                                PopOpOpandsAndPushNode(stackOp);
+                                if (!PopOpOpandsAndPushNode(stackOp, ref error))
+                                    return output.Peek();
                             }
 
                             opStack.Push(readBinOp);
@@ -178,7 +242,7 @@ namespace BurstExpressions.Runtime.Parsing
                             while (true)
                             {
                                 INode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
-                                    opStack.Count);
+                                    opStack.Count, out error);
                                 args.Add(arg);
                                 if (r.CurrentTokenType == Token.RightParens)
                                 {
@@ -205,12 +269,13 @@ namespace BurstExpressions.Runtime.Parsing
                 var readBinOp = opStack.Pop();
                 if (readBinOp.Type == OpType.LeftParens)
                     break;
-                PopOpOpandsAndPushNode(readBinOp);
+                if (!PopOpOpandsAndPushNode(readBinOp, ref error))
+                    return output.Peek();
             }
 
             return output.Pop();
 
-            void PopOpOpandsAndPushNode(Operator readBinOp)
+            bool PopOpOpandsAndPushNode(Operator readBinOp, ref Error error)
             {
                 var b = output.Pop();
                 if (readBinOp.Unary)
@@ -220,24 +285,16 @@ namespace BurstExpressions.Runtime.Parsing
                 else
                 {
                     if (output.Count == 0)
-                        throw new InvalidDataException($"Missing operand for the {readBinOp.Str} operator in the expression");
+                    {
+                        error = new Error(ErrorKind.MissingOperand, r.CurrentTokenIndex, readBinOp.Str);
+                        output.Push(new BinOp(readBinOp.Type, b, null));
+                        return false;
+                    }
                     var a = output.Pop();
                     output.Push(new BinOp(readBinOp.Type, a, b));
                 }
-            }
 
-            void RecurseThroughArguments(List<INode> args, INode n)
-            {
-                switch (n)
-                {
-                    case BinOp b when b.Type == OpType.Coma:
-                        RecurseThroughArguments(args, b.A);
-                        RecurseThroughArguments(args, b.B);
-                        break;
-                    default:
-                        args.Add(n);
-                        break;
-                }
+                return true;
             }
         }
     }

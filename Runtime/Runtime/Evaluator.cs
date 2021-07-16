@@ -10,7 +10,7 @@ namespace BurstExpressions.Runtime.Runtime
 {
     public interface IOperators
     {
-        void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext;
+        void ExecuteOp<TContext>(in EvaluationInstruction instr, ref TContext impl) where TContext : struct, IContext;
     }
     public interface IContext
     {
@@ -122,9 +122,9 @@ namespace BurstExpressions.Runtime.Runtime
 
         public struct DefaultOps : IOperators
         {
-            public void ExecuteOp<TContext>(in Node node, ref TContext impl) where TContext : struct, IContext
+            public void ExecuteOp<TContext>(in EvaluationInstruction instr, ref TContext impl) where TContext : struct, IContext
             {
-                switch (node.Op)
+                switch (instr.Op)
                 {
                     // unary
                     case EvalOp.Minus_1:
@@ -132,13 +132,13 @@ namespace BurstExpressions.Runtime.Runtime
                         break;
                     // no params
                     case EvalOp.Const_0:
-                        impl.Push(node.Val);
+                        impl.Push(instr.Val);
                         break;
                     case EvalOp.Param_0:
-                        impl.Push(impl.Param((byte)(node.Index - 1)));
+                        impl.Push(impl.Param((byte)(instr.Index - 1)));
                         break;
                     case EvalOp.Ld_0:
-                        impl.Push(impl.Load((byte)(node.Index - 1)));
+                        impl.Push(impl.Load((byte)(instr.Index - 1)));
                         break;
 
                     // binary and more
@@ -216,7 +216,7 @@ namespace BurstExpressions.Runtime.Runtime
                         impl.Push(math.length(math.max(q, 0)) + math.min(math.max(q.x, math.max(q.y, q.z)), 0));
                         break;
                     default:
-                        throw new NotImplementedException(string.Format("Operator {0} is not implemented", node.Op));
+                        throw new NotImplementedException(string.Format("Operator {0} is not implemented", instr.Op));
                 }
             }
 

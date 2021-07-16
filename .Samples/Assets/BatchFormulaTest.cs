@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using BurstExpressions.Runtime;
 using BurstExpressions.Runtime.Runtime;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -92,7 +90,7 @@ public class BatchFormulaTest : MonoBehaviour
         }
     }
 
-    private unsafe void Update()
+    private void Update()
     {
         if (LiveEdit)
             Test.LiveEdit(ref _evalgraph);

@@ -165,9 +165,9 @@ MonoBehaviour:
       Index: 0
     - Op: 1
       Val:
-        x: 5
-        y: 5
-        z: 5
+        x: 1.14
+        y: 1.14
+        z: 1.14
       Index: 0
     - Op: 2
       Val:
@@ -177,9 +177,9 @@ MonoBehaviour:
       Index: 2
     - Op: 1
       Val:
-        x: 14.26
-        y: 14.26
-        z: 14.26
+        x: 0.48
+        y: 0.48
+        z: 0.48
       Index: 0
     - Op: 2
       Val:
@@ -225,17 +225,17 @@ MonoBehaviour:
       Index: 0
     NamedValues:
     - Name: f
-      Value: {x: 14.26, y: 0, z: 0}
+      Value: {x: 0.48, y: 0, z: 0}
       IsSingleFloat: 1
       SubFormula: 
     - Name: y
-      Value: {x: 5, y: 0, z: 0}
+      Value: {x: 1.14, y: 0, z: 0}
       IsSingleFloat: 1
       SubFormula: 
     Params:
     - t
     - i
-  Count: 10000
+  Count: 1000
   LiveEdit: 0
   CompleteJobsImmediately: 0
   UseRawCodeVersion: 0
