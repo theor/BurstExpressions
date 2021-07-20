@@ -1,6 +1,6 @@
 # BurstExpressions
 
-An optimizing  expression parser with an efficientBurst-compiled evaluation engine and live-edit in editor (soon, optionally in the runtime too).
+An optimizing  expression parser with an efficient Burst-compiled evaluation engine and live-edit in editor (soon, optionally in the runtime too).
 
 When declaring a formula, you can specify the parameters it will receive from the code, like the current time `t`.
 
@@ -26,7 +26,7 @@ public class FormulaTest : MonoBehaviour
 {
     // The formula itself
     public Formula Test;
-    private EvalGraph _evalgraph;
+    private EvaluationGraph _evalgraph;
 
     public void Reset()
     {

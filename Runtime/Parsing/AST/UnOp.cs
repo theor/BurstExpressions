@@ -1,11 +1,11 @@
 ﻿namespace BurstExpressions.Runtime.Parsing.AST
 {
-    public struct UnOp : IOp
+    public struct UnOp : IAstOp
     {
         public readonly OpType Type;
-        public readonly INode A;
+        public readonly IAstNode A;
 
-        public UnOp(OpType type, INode a)
+        public UnOp(OpType type, IAstNode a)
         {
             Type = type;
             A = a;

@@ -18,6 +18,7 @@ namespace BurstExpressions.Runtime.Parsing
             MissingOperand,
             UnknownUnaryOperator,
             UnknownBinaryOperator,
+            EndOfExpression
         }
 
         public readonly struct Error
@@ -38,6 +39,7 @@ namespace BurstExpressions.Runtime.Parsing
                 string msg = Kind switch
                 {
                     ErrorKind.None => "None",
+                    ErrorKind.EndOfExpression => "No characters left to parse",
                     ErrorKind.ClosingParenMissing => "Closing paren missing",
                     ErrorKind.TuplesNotSupported => "Tuples not supported",
                     ErrorKind.MismatchedParens => "Mismatched parens",
@@ -94,7 +96,7 @@ namespace BurstExpressions.Runtime.Parsing
             {OpType.Minus, new Operator(OpType.Minus, "-", 2000, Associativity.Right, unary: true)},
         };
 
-        static INode ReturnError(INode node, int location, ref Error error, ErrorKind kind, string argument = null)
+        static IAstNode ReturnError(IAstNode node, int location, ref Error error, ErrorKind kind, string argument = null)
         {
             error = new Error(kind, location, argument);
             return node;
@@ -116,7 +118,7 @@ namespace BurstExpressions.Runtime.Parsing
             return false;
         }
 
-        public static bool TryParse(string s, out INode node, out Error error)
+        public static bool TryParse(string s, out IAstNode node, out Error error)
         {
             node = null;
             if (s == null)
@@ -124,7 +126,7 @@ namespace BurstExpressions.Runtime.Parsing
                 error = default;
                 return true;
             }
-            var output = new Stack<INode>();
+            var output = new Stack<IAstNode>();
             var opStack = new Stack<Operator>();
 
             Reader r = new Reader(s);
@@ -135,7 +137,7 @@ namespace BurstExpressions.Runtime.Parsing
             return error.Kind == ErrorKind.None;
 
         }
-        // public static INode Parse(string s, out string error)
+        // public static IASTNode Parse(string s, out string error)
         // {
         //     error = null;
         //     if (TryParse(s, out var node, out var err))
@@ -159,7 +161,7 @@ namespace BurstExpressions.Runtime.Parsing
             return false;
         }
 
-        private static INode ParseUntil(Reader r, Stack<Operator> opStack, Stack<INode> output, Token readUntilToken,
+        private static IAstNode ParseUntil(Reader r, Stack<Operator> opStack, Stack<IAstNode> output, Token readUntilToken,
             int startOpStackSize, out Error error)
         {
             error = default;
@@ -171,7 +173,7 @@ namespace BurstExpressions.Runtime.Parsing
                         {
                             opStack.Push(Ops[OpType.LeftParens]);
                             r.ReadToken();
-                            INode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
+                            IAstNode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
                                 opStack.Count, out error);
                             if (r.CurrentTokenType == Token.Coma)
                                 return ReturnError(arg, r.CurrentTokenIndex, ref error, ErrorKind.TuplesNotSupported);
@@ -237,18 +239,24 @@ namespace BurstExpressions.Runtime.Parsing
                         {
                             r.ReadToken(); // skip (
                             opStack.Push(Ops[OpType.LeftParens]);
-                            List<INode> args = new List<INode>();
+                            List<IAstNode> args = new List<IAstNode>();
 
                             while (true)
                             {
-                                INode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
-                                    opStack.Count, out error);
-                                args.Add(arg);
+                                IAstNode arg = ParseUntil(r, opStack, output, Token.Coma | Token.RightParens,
+                                    opStack.Count, out var recError);
+                                if (arg != null)
+                                    args.Add(arg);
                                 if (r.CurrentTokenType == Token.RightParens)
                                 {
                                     opStack.Pop();
+                                    if (recError.Kind != ErrorKind.MismatchedParens)
+                                        error = recError;
                                     break;
                                 }
+                                error = recError;
+                                if (r.CurrentTokenType == Token.None)
+                                    break;
                                 r.ReadToken();
                             }
 
@@ -259,7 +267,7 @@ namespace BurstExpressions.Runtime.Parsing
                             break;
                         }
                     default:
-                        throw new ArgumentOutOfRangeException(r.CurrentTokenType.ToString());
+                        return ReturnError(null, r.CurrentTokenIndex, ref error, ErrorKind.EndOfExpression);
                 }
             }
             while (!readUntilToken.HasFlag(r.CurrentTokenType));

@@ -50,7 +50,7 @@ public class EvaluationTestsBase
         if (!Parser.TryParse(input, out var n, out var err))
             Assert.IsTrue(false, err.ToString());
         var nodes = Translator.Translate(n,
-            variables.Select(x => new FormulaParam(x.Key) { Value = x.Value }).ToList(),
+            variables.Select(x => new NamedValue(x.Key) { Value = x.Value }).ToList(),
             @params.Select(x => x.Item1).ToList(), out var usedValues,
             simplify ? Translator.TranslationOptions.FoldConstantExpressions : Translator.TranslationOptions.None);
 

@@ -17,7 +17,7 @@ namespace BurstExpressions.Runtime.Parsing
     public static class Translator
     {
         private static FormulaParamNameComparer s_ParamNameComparer = new FormulaParamNameComparer();
-        public static IComparer<FormulaParam> FormulaParamsCompareByName => s_ParamNameComparer;
+        public static IComparer<NamedValue> FormulaParamsCompareByName => s_ParamNameComparer;
 
         public class VariableInfo
         {
@@ -34,9 +34,9 @@ namespace BurstExpressions.Runtime.Parsing
             public Dictionary<string, VariableInfo> VariableInfos = new Dictionary<string, VariableInfo>();
         }
 
-        internal class FormulaParamNameComparer : IComparer<FormulaParam>
+        internal class FormulaParamNameComparer : IComparer<NamedValue>
         {
-            public int Compare(FormulaParam x, FormulaParam y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal);
+            public int Compare(NamedValue x, NamedValue y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal);
         }
 
         [Flags]
@@ -45,7 +45,7 @@ namespace BurstExpressions.Runtime.Parsing
             None = 0,
             FoldConstantExpressions = 1,
         }
-        public static EvaluationInstruction[] Translate(INode node, List<FormulaParam> variables, List<string> parameters,
+        public static EvaluationInstruction[] Translate(IAstNode node, List<NamedValue> variables, List<string> parameters,
             out Variables v, TranslationOptions options = TranslationOptions.None)
         {
             List<EvaluationInstruction> nodes = new List<EvaluationInstruction>();
@@ -60,7 +60,7 @@ namespace BurstExpressions.Runtime.Parsing
             return (options & TranslationOptions.FoldConstantExpressions) != 0 ? ConstantFolding.Fold(nodes).ToArray() : nodes.ToArray();
         }
 
-        private static void Rec(List<EvaluationInstruction> nodes, List<FormulaParam> variables, INode node,
+        private static void Rec(List<EvaluationInstruction> nodes, List<NamedValue> variables, IAstNode node,
             List<string> formulaParams, Variables variableInfos, TranslationOptions translationOptions)
         {
 
@@ -76,11 +76,11 @@ namespace BurstExpressions.Runtime.Parsing
                     else // not a param, but a user created variable (named value)
                     {
                         var flag = variable.Id.StartsWith("f", StringComparison.OrdinalIgnoreCase)
-                            ? FormulaParam.FormulaParamFlag.Float
+                            ? NamedValue.FormulaParamFlag.Float
                             : variable.Id.StartsWith("s", StringComparison.OrdinalIgnoreCase)
-                                ? FormulaParam.FormulaParamFlag.Formula
-                                : FormulaParam.FormulaParamFlag.Vector3;
-                        var variableParam = new FormulaParam(variable.Id, flag);
+                                ? NamedValue.FormulaParamFlag.Formula
+                                : NamedValue.FormulaParamFlag.Vector3;
+                        var variableParam = new NamedValue(variable.Id, flag);
                         var idx = variables.BinarySearch(variableParam, s_ParamNameComparer);
 
                         if (idx < 0)
@@ -93,7 +93,7 @@ namespace BurstExpressions.Runtime.Parsing
                             variableInfos.VariableInfos.Add(variable.Id, info = new VariableInfo());
 
                             // SUB FORMULA
-                            if (variableParam.IsSingleFloat == FormulaParam.FormulaParamFlag.Formula)
+                            if (variableParam.IsSingleFloat == NamedValue.FormulaParamFlag.Formula)
                             {
                                 info.Translated = new List<EvaluationInstruction>();
                                 if (info.Translated == null && string.IsNullOrEmpty(variableParam.SubFormulaError))
@@ -117,7 +117,7 @@ namespace BurstExpressions.Runtime.Parsing
                          */
 
 
-                        if (variableParam.IsSingleFloat == FormulaParam.FormulaParamFlag.Formula)
+                        if (variableParam.IsSingleFloat == NamedValue.FormulaParamFlag.Formula)
                         {
                             if (info.Inline)
                             {
@@ -135,8 +135,8 @@ namespace BurstExpressions.Runtime.Parsing
                         {
                             var v = variableParam.IsSingleFloat switch
                             {
-                                FormulaParam.FormulaParamFlag.Float => new float3(variableParam.Value.x),
-                                FormulaParam.FormulaParamFlag.Vector3 => (float3)variableParam.Value,
+                                NamedValue.FormulaParamFlag.Float => new float3(variableParam.Value.x),
+                                NamedValue.FormulaParamFlag.Vector3 => (float3)variableParam.Value,
                                 _ => throw new System.NotImplementedException(),
                             };
                             nodes.Add(new EvaluationInstruction(EvalOp.Const_0, v));

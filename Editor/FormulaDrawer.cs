@@ -94,9 +94,9 @@ namespace BurstExpressions.Editor
             {
                 var elt = namedValues.GetArrayElementAtIndex(i);
                 rect.y += EditorGUIUtility.singleLineHeight;
-                var nameProp = elt.FindPropertyRelative(nameof(FormulaParam.Name));
-                var valProp = elt.FindPropertyRelative(nameof(FormulaParam.Value));
-                var flagProp = elt.FindPropertyRelative(nameof(FormulaParam.IsSingleFloat));
+                var nameProp = elt.FindPropertyRelative(nameof(NamedValue.Name));
+                var valProp = elt.FindPropertyRelative(nameof(NamedValue.Value));
+                var flagProp = elt.FindPropertyRelative(nameof(NamedValue.IsSingleFloat));
                 var valueRect = rect;
                 var flagsRect = rect;
                 var flagPRopWidth = 100;
@@ -104,20 +104,20 @@ namespace BurstExpressions.Editor
                 flagsRect.xMin = flagsRect.xMax - flagPRopWidth;
                 switch (flagProp.enumValueIndex)
                 {
-                    case (int)FormulaParam.FormulaParamFlag.Vector3:
+                    case (int)NamedValue.FormulaParamFlag.Vector3:
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.PropertyField(valueRect, valProp, new GUIContent(nameProp.stringValue));
                         if (EditorGUI.EndChangeCheck()) UpdateInstance(formulaObject);
                         break;
-                    case (int)FormulaParam.FormulaParamFlag.Float:
+                    case (int)NamedValue.FormulaParamFlag.Float:
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.PropertyField(valueRect, valProp.FindPropertyRelative(nameof(Vector3.x)),
                             new GUIContent(nameProp.stringValue));
                         if (EditorGUI.EndChangeCheck()) UpdateInstance(formulaObject);
                         break;
-                    case (int)FormulaParam.FormulaParamFlag.Formula:
+                    case (int)NamedValue.FormulaParamFlag.Formula:
                         EditorGUI.BeginChangeCheck();
-                        EditorGUI.PropertyField(valueRect, elt.FindPropertyRelative(nameof(FormulaParam.SubFormula)),
+                        EditorGUI.PropertyField(valueRect, elt.FindPropertyRelative(nameof(NamedValue.SubFormula)),
                             new GUIContent(nameProp.stringValue));
                         if (EditorGUI.EndChangeCheck()) UpdateInstance(formulaObject, i);
                         break;

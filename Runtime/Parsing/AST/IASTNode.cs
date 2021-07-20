@@ -1,6 +1,6 @@
 namespace BurstExpressions.Runtime.Parsing.AST
 {
-    interface IOp : INode
+    public interface IAstNode
     {
     }
 }

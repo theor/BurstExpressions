@@ -51,7 +51,7 @@ namespace BurstExpressions.Runtime
         private int ExpectedFinalStackLength;
         private const byte MaxStackSize = 10;
         [SerializeField] internal EvaluationInstruction[] Content;
-        public List<FormulaParam> NamedValues;
+        public List<NamedValue> NamedValues;
         public List<string> Params;
 
         public void SetDirty() => _dirty = true;
@@ -125,7 +125,7 @@ namespace BurstExpressions.Runtime
                     for (var index = 0; index < NamedValues.Count; index++)
                     {
                         var formulaParam = NamedValues[index];
-                        if (formulaParam.IsSingleFloat == FormulaParam.FormulaParamFlag.Formula &&
+                        if (formulaParam.IsSingleFloat == NamedValue.FormulaParamFlag.Formula &&
                             formulaParam.SubFormulaNode == null && string.IsNullOrEmpty(formulaParam.SubFormulaError))
                         {
                             formulaParam.ParseSubFormula();

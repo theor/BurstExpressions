@@ -2,11 +2,12 @@ using System;
 using BurstExpressions.Runtime.Parsing;
 using BurstExpressions.Runtime.Parsing.AST;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace BurstExpressions.Runtime
 {
-    [Serializable]
-    public struct FormulaParam
+    [Serializable, MovedFrom(false, sourceClassName:"FormulaParam")]
+    public struct NamedValue
     {
         public enum FormulaParamFlag
         {
@@ -20,11 +21,11 @@ namespace BurstExpressions.Runtime
         [Delayed]
         public string SubFormula;
         public string SubFormulaError { get; private set; }
-        public INode SubFormulaNode { get; private set; }
+        public IAstNode SubFormulaNode { get; private set; }
 
-        public static FormulaParam FromSubFormula(string name, INode subformula)
+        public static NamedValue FromSubFormula(string name, IAstNode subformula)
         {
-            return new FormulaParam(name, FormulaParamFlag.Formula) { SubFormulaNode = subformula };
+            return new NamedValue(name, FormulaParamFlag.Formula) { SubFormulaNode = subformula };
         }
 
         public void ParseSubFormula()
@@ -32,10 +33,10 @@ namespace BurstExpressions.Runtime
             var subFormulaNode = SubFormulaNode;
             Parser.TryParse(SubFormula, out subFormulaNode, out var error);
             SubFormulaNode = subFormulaNode;
-            SubFormulaError = error.ToString();
+            SubFormulaError = error.Kind == Parser.ErrorKind.None ? null : error.ToString();
         }
 
-        public FormulaParam(string name, FormulaParamFlag isSingleFloat = FormulaParamFlag.Vector3)
+        public NamedValue(string name, FormulaParamFlag isSingleFloat = FormulaParamFlag.Vector3)
         {
             Name = name;
             Value = default;

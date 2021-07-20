@@ -1,6 +1,6 @@
 namespace BurstExpressions.Runtime.Parsing.AST
 {
-    public struct Variable : IVal
+    public struct Variable : IAstVal
     {
         public readonly string Id;
 

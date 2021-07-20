@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace BurstExpressions.Runtime.Parsing.AST
 {
-    public struct ExpressionValue : IVal
+    public struct ExpressionValue : IAstVal
     {
         public readonly float F;
 

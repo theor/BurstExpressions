@@ -29,6 +29,7 @@ public class ParsingEvaluationTests : EvaluationTestsBase
             TestCaseData F(float3 a, string s, params (string, string)[] @params) => new TestCaseData(true, s, a, @params).SetName($"{s} = {a} {string.Join(", ", @params)}");
             TestCaseData Error(float3 a, string s, params (string, string)[] @params) => new TestCaseData(false, s, a, @params).SetName($"Error: {s} = {a} {string.Join(", ", @params)}");
             yield return F(10, "x+x", ("x", "5"));
+            yield return F(new float3(10, 20, 30), "x+x", ("x", "p*5"));
             yield return F(10, "x+x", ("x", "2+3"));
             yield return F(5, "x", ("x", "y"), ("y", "5"));
             yield return F(10, "x", ("x", "y*2"), ("y", "5"));
@@ -65,7 +66,7 @@ public class ParsingEvaluationTests : EvaluationTestsBase
     public void Simplify(string input)
     {
         Assert.IsTrue(Parser.TryParse(input, out var n, out var err), err.ToString());
-        var folded = Translator.Translate(n, new List<FormulaParam> { new FormulaParam("p") { Value = Vector3.one } }, new List<string> { "x" }, out _, Translator.TranslationOptions.FoldConstantExpressions);
+        var folded = Translator.Translate(n, new List<NamedValue> { new NamedValue("p") { Value = Vector3.one } }, new List<string> { "x" }, out _, Translator.TranslationOptions.FoldConstantExpressions);
         Debug.Log(Formatter.Format(n, Formatter.FormatFlags.DifferentColorPerNode | Formatter.FormatFlags.ParensAroundBinaryOperators));
         Debug.Log(String.Join("\n", folded));
     }
@@ -83,11 +84,11 @@ public class ParsingEvaluationTests : EvaluationTestsBase
     {
         Assert.IsTrue(Parser.TryParse(mainFormula, out var main, out var err), err.ToString());
 
-        var formulaParams = new List<FormulaParam>();
+        var formulaParams = new List<NamedValue>();
         foreach (var formula in formulas)
         {
             Assert.IsTrue(Parser.TryParse(formula.formula, out var x, out var xErr), err.ToString());
-            formulaParams.Add(FormulaParam.FromSubFormula(formula.variable, x));
+            formulaParams.Add(NamedValue.FromSubFormula(formula.variable, x));
         }
         formulaParams.Sort(Translator.FormulaParamsCompareByName);
 
@@ -97,7 +98,7 @@ public class ParsingEvaluationTests : EvaluationTestsBase
             var nodes = Translator.Translate(main, formulaParams, new List<string> { "p" }, out var usedValues,
                 simplify ? Translator.TranslationOptions.FoldConstantExpressions : Translator.TranslationOptions.None);
             Debug.Log(string.Join("\n", nodes));
-            Run(result, nodes, (byte)(usedValues.NextIndex), 10, null);
+            Run(result, nodes, (byte)(usedValues.NextIndex), 10, new float3[] { new float3(1, 2, 3) });
         }
         catch (Exception)
         {
@@ -114,9 +115,9 @@ public class ParsingEvaluationTests : EvaluationTestsBase
         string input = "x+x";
         Assert.IsTrue(Parser.TryParse(input, out var main, out var err), err.ToString());
         Assert.IsTrue(Parser.TryParse("5", out var x, out var xErr), err.ToString());
-        var nodes = Translator.Translate(main, new List<FormulaParam>
+        var nodes = Translator.Translate(main, new List<NamedValue>
         {
-            FormulaParam.FromSubFormula("x", x)
+            NamedValue.FromSubFormula("x", x)
         }, null, out var usedValues);
         Run(10, nodes, (byte)(usedValues.NextIndex), 10, null);
     }

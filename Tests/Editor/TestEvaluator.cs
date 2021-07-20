@@ -11,7 +11,7 @@ namespace Tests.Editor
 {
     public static class TestEvaluator
     {
-        public static float Eval(INode node, Dictionary<string, float> variables = null)
+        public static float Eval(IAstNode node, Dictionary<string, float> variables = null)
         {
             switch (node)
             {

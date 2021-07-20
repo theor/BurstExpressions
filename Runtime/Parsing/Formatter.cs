@@ -94,7 +94,7 @@ namespace BurstExpressions.Runtime.Parsing
             return s;
         }
 
-        static string FormatRec(INode n, ref Options options)
+        static string FormatRec(IAstNode n, ref Options options)
         {
             switch (n)
             {
@@ -143,13 +143,13 @@ namespace BurstExpressions.Runtime.Parsing
                     ? $"<color=#{ColorUtility.ToHtmlStringRGB(HaltonSequence.ColorFromIndex(options.RandomColorSeed++, s: 0.45f, v: 1))}>{s}</color>"
                     : s;
 
-        public static string Format(INode n, FormatFlags flags = FormatFlags.None)
+        public static string Format(IAstNode n, FormatFlags flags = FormatFlags.None)
         {
             Options options = DefaultOptions;
             options.Flags = flags;
             return FormatRec(n, ref options);
         }
-        public static string Format(INode n, Options options)
+        public static string Format(IAstNode n, Options options)
         {
             Options copy = options;
             return FormatRec(n, ref copy);

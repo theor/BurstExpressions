@@ -23,9 +23,6 @@ namespace BurstExpressions.Runtime.Runtime
     [BurstCompile]
     public struct Evaluator
     {
-        private int _current;
-
-
         [BurstCompile]
         public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
         {
@@ -91,14 +88,11 @@ namespace BurstExpressions.Runtime.Runtime
             using (var stack = new UnsafeList<float3>(graph.MaxStackSize, Allocator.Temp))
             {
                 Impl impl = new Impl(stack, @params);
-                _current = 0;
                 impl.Stack.Clear();
-                while (_current < graph.Length)
+                for (int current = 0; current < graph.Length; current++)
                 {
-                    var node = graph.Nodes[_current];
+                    var node = graph.Nodes[current];
                     operators.ExecuteOp(node, ref impl);
-
-                    _current++;
                 }
 
                 Assert.AreNotEqual(0, impl.Stack.Length);
