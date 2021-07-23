@@ -655,15 +655,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Test:
-    Input: t+x+y+z
+    Input: 'v3(cos(t*x),sin(t*y),0)*z '
     Options: -1
     ExpectedFinalStackLength: 1
     Content:
     - Op: 1
       Val:
-        x: 1.81
-        y: 1.81
-        z: 1.81
+        x: 3.96
+        y: 3.96
+        z: 3.96
       Index: 0
     - Op: 1
       Val:
@@ -673,9 +673,9 @@ MonoBehaviour:
       Index: 0
     - Op: 1
       Val:
-        x: 1.81
-        y: 1.81
-        z: 1.81
+        x: 3.25
+        y: 3.25
+        z: 3.25
       Index: 0
     - Op: 2
       Val:
@@ -683,19 +683,49 @@ MonoBehaviour:
         y: 0
         z: 0
       Index: 1
-    - Op: 4
+    - Op: 6
       Val:
         x: 0
         y: 0
         z: 0
       Index: 0
-    - Op: 4
+    - Op: 16
       Val:
         x: 0
         y: 0
         z: 0
       Index: 0
-    - Op: 4
+    - Op: 1
+      Val:
+        x: 3.77
+        y: 3.77
+        z: 3.77
+      Index: 0
+    - Op: 2
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 17
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 26
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 6
       Val:
         x: 0
         y: 0
@@ -703,16 +733,16 @@ MonoBehaviour:
       Index: 0
     NamedValues:
     - Name: x
-      Value: {x: 1.81, y: 0, z: 0}
+      Value: {x: 3.77, y: 0, z: 0}
       IsSingleFloat: 1
       SubFormula: 
     - Name: y
-      Value: {x: 0, y: 0, z: 0}
-      IsSingleFloat: 0
+      Value: {x: 3.25, y: 0, z: 0}
+      IsSingleFloat: 1
       SubFormula: 
     - Name: z
-      Value: {x: 0, y: 0, z: 0}
-      IsSingleFloat: 2
+      Value: {x: 3.96, y: 0, z: 0}
+      IsSingleFloat: 1
       SubFormula: x
     Params:
     - t
