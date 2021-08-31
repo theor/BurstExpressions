@@ -38,6 +38,8 @@ public class ParsingEvaluationTests : EvaluationTestsBase
             yield return F(8, "x+y", ("x", "5"), ("y", "3"));
             yield return F(8, "y+x", ("x", "5"), ("y", "3"));
             yield return F(32, "x", ("x", "y+z"), ("y", "3*z"), ("z", "8"));
+            yield return F(4, "select(1 < 2,4,5)");
+            yield return F(5, "select(1 > 2,4,5)");
 
             // recursive variable definition
             yield return Error(8, "y", ("y", "x"), ("x", "y"));

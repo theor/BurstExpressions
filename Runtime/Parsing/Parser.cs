@@ -81,6 +81,11 @@ namespace BurstExpressions.Runtime.Parsing
 
         internal static readonly Dictionary<OpType, Operator> Ops = new Dictionary<OpType, Operator>
         {
+            {OpType.Gt, new Operator(OpType.Gt, ">", 2, Associativity.Left)},
+            {OpType.Gte, new Operator(OpType.Gte, ">=", 2, Associativity.Left)},
+            {OpType.Lt, new Operator(OpType.Lt, "<", 2, Associativity.Left)},
+            {OpType.Lte, new Operator(OpType.Lte, "<=", 2, Associativity.Left)},
+
             {OpType.Add, new Operator(OpType.Add, "+", 2, Associativity.Left)},
             {OpType.Sub, new Operator(OpType.Sub, "-", 2, Associativity.Left)},
 
@@ -201,6 +206,7 @@ namespace BurstExpressions.Runtime.Parsing
                         {
                             bool unary = r.PrevTokenType == Token.Op ||
                                          r.PrevTokenType == Token.LeftParens ||
+                                         r.PrevTokenType == Token.Coma ||
                                          r.PrevTokenType == Token.None;
                             if (!ReadOperator(r, unary, out var readBinOp, ref error))
                                 return null;

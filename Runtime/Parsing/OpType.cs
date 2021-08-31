@@ -11,6 +11,8 @@ namespace BurstExpressions.Runtime.Parsing
         Plus,
         Minus,
         Coma,
-        Mod
+        Mod,
+
+        Gt, Gte, Lt, Lte
     }
 }

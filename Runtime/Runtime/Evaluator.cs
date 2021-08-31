@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -24,25 +25,51 @@ namespace BurstExpressions.Runtime.Runtime
     public struct Evaluator
     {
         [BurstCompile]
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
+        public static unsafe void Run(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res)
+        {
+            res = new Evaluator().Run(graph, default(DefaultOps), @params, parameterCount);
+        }
+
+        public static unsafe void Run(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res)
+        {
+            res = new Evaluator().Run(graph, default(DefaultOps), (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
+        }
+
+
+        public static unsafe void Run(in EvaluationGraph graph, float3[] @params, out float3 res)
+        {
+            fixed (float3* ptr = @params)
+                res = new Evaluator().Run(graph, default(DefaultOps), ptr, @params.Length);
+        }
+
+        [BurstCompile]
+        public static unsafe void Run(in EvaluationGraph graph, in float3 singleParam, out float3 res)
+        {
+            var p2 = singleParam;
+            Run(graph, &p2, 1, out res, default(DefaultOps));
+        }
+
+
+        [BurstCompile]
+        public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res, TOperators ops) where TOperators : struct, IOperators
         {
             res = new Evaluator().Run(graph, ops, @params, parameterCount);
         }
 
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
+        public static unsafe void Run<TOperators>(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res, TOperators ops) where TOperators : struct, IOperators
         {
             res = new Evaluator().Run(graph, ops, (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
         }
 
 
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3[] @params, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
+        public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3[] @params, out float3 res, TOperators ops) where TOperators : struct, IOperators
         {
             fixed (float3* ptr = @params)
                 res = new Evaluator().Run(graph, ops, ptr, @params.Length);
         }
 
         [BurstCompile]
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, in float3 singleParam, out float3 res, TOperators ops = default) where TOperators : struct, IOperators
+        public static unsafe void Run<TOperators>(in EvaluationGraph graph, in float3 singleParam, out float3 res, TOperators ops) where TOperators : struct, IOperators
         {
             var p2 = singleParam;
             Run(graph, &p2, 1, out res, ops);
@@ -169,6 +196,9 @@ namespace BurstExpressions.Runtime.Runtime
                     case EvalOp.Pow_2:
                         impl.Push(math.pow(impl.Pop(), impl.Pop()));
                         break;
+                    case EvalOp.Sqrt_1:
+                        impl.Push(math.sqrt(impl.Pop()));
+                        break;
                     case EvalOp.Abs_1:
                         impl.Push(math.abs(impl.Pop()));
                         break;
@@ -204,16 +234,53 @@ namespace BurstExpressions.Runtime.Runtime
                         impl.Push(new float3(impl.Pop().x, impl.Pop().x, impl.Pop().x));
                         break;
                     case EvalOp.Box_2:
-                        var p = impl.Pop();
-                        var b = impl.Pop();
-                        var q = math.abs(p) - b;
-                        impl.Push(math.length(math.max(q, 0)) + math.min(math.max(q.x, math.max(q.y, q.z)), 0));
+                        {
+                            var p = impl.Pop();
+                            var b = impl.Pop();
+                            var q = math.abs(p) - b;
+                            impl.Push(math.length(math.max(q, 0)) + math.min(math.max(q.x, math.max(q.y, q.z)), 0));
+                            break;
+                        }
+                    case EvalOp.Clamp_3:
+                        impl.Push(math.clamp(impl.Pop(), impl.Pop(), impl.Pop()));
                         break;
+                    // boolean
+                    case EvalOp.Gt_2:
+                        impl.Push(FromBool3(impl.Pop() > impl.Pop()));
+                        break;
+                    case EvalOp.Gte_2:
+                        impl.Push(FromBool3(impl.Pop() >= impl.Pop()));
+                        break;
+                    case EvalOp.Lt_2:
+                        impl.Push(FromBool3(impl.Pop() < impl.Pop()));
+                        break;
+                    case EvalOp.Lte_2:
+                        impl.Push(FromBool3(impl.Pop() <= impl.Pop()));
+                        break;
+                    case EvalOp.Select_3:
+                        {
+                            var cond = impl.Pop();
+                            var a = impl.Pop();
+                            var b = impl.Pop();
+                            impl.Push(math.@select(b, a, Bool3(cond)));
+                            break;
+                        }
                     default:
                         throw new NotImplementedException(string.Format("Operator {0} is not implemented", instr.Op));
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            bool Bool(float3 f) => f.x != 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            bool3 Bool3(float3 f) => new bool3(Bool(f.x), Bool(f.y), Bool(f.z));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            float3 FromBool(bool b) => b ? 1 : 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            float3 FromBool3(bool3 b) => math.all(b) ? 1 : 0;
         }
     }
 }

@@ -33,7 +33,7 @@ public class VFXSphereFormula : MonoBehaviour
     {
         Test.LiveEdit(ref _evalgraph);
 
-        Evaluator.Run<Evaluator.DefaultOps>(_evalgraph, Time.realtimeSinceStartup, out var res);
+        Evaluator.Run(_evalgraph, Time.realtimeSinceStartup, out var res);
         _vfx.SetVector3(_initPositionId, res);
     }
 }

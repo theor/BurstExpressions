@@ -11,35 +11,6 @@ namespace Tests.Editor
 {
     class ParsingTests
     {
-        [BurstCompile]
-        public struct GotoJob : IJob
-        {
-            public static void F()
-            {
-
-            }
-            public unsafe void Execute()
-            {
-                // Unity.Burst.Intrinsics.Common.
-                // var x = &F;
-                // var x = loop;
-                // int i = 5;
-                // loop:
-                // if (i == 0)
-                //     goto end;
-                // Debug.Log(string.Format("{0}", i));
-                // i--;
-                // goto loop;
-                // end:
-                // Debug.Log("Done");
-            }
-        }
-
-        [Test]
-        public void Test3()
-        {
-            new GotoJob { }.Run();
-        }
         [Test]
         public void Test()
         {

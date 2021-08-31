@@ -14,6 +14,7 @@ namespace BurstExpressions.Runtime.Runtime
         Mul_2, Div_2,
         Mod_2,
         Pow_2,
+        Sqrt_1,
         Minus_1,
         Abs_1,
         Saturate_1,
@@ -28,5 +29,12 @@ namespace BurstExpressions.Runtime.Runtime
         SqDist_2,
         V3_3,
         Box_2,
+        Clamp_3,
+        // boolean
+        Gt_2,
+        Lt_2,
+        Gte_2,
+        Lte_2,
+        Select_3,
     }
 }
