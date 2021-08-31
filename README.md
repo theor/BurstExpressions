@@ -1,12 +1,21 @@
 # BurstExpressions
 
-An optimizing  expression parser with an efficient Burst-compiled evaluation engine and live-edit in editor (soon, optionally in the runtime too).
+![header](https://user-images.githubusercontent.com/1766559/131505331-3894684b-b8c6-4cb6-b6cf-f43f68f28b09.gif)
+
+An optimizing  expression parser with an efficient Burst-compiled evaluation engine and live-edit in editor.
+
+Details in my blog article here: [https://theor.xyz/posts/burst-expressions/](https://theor.xyz/posts/burst-expressions/)
 
 When declaring a formula, you can specify the parameters it will receive from the code, like the current time `t`.
 
 Any value that is not a parameter will be considered as a *named value*. A named value can be a single `float` or `float3` or a nested formula that can use the same parameters and named values and declare new named values.
 
 Evaluation can happen from the main thread or from jobs, and an expression can be evaluated multiple times with different parameters in batch.
+
+Videos on youtube:
+
+[![Demo video on youtube](https://img.youtube.com/vi/HEW5E6rlZAA/0.jpg)](https://www.youtube.com/watch?v=HEW5E6rlZAA)
+[![Demo video on youtube](https://img.youtube.com/vi/h3Tax5hBx6w/0.jpg)](https://www.youtube.com/watch?v=h3Tax5hBx6w)
 
 ## How it works
 
