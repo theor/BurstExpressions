@@ -49,7 +49,9 @@ namespace BurstExpressions.Runtime
 
         [SerializeField]
         private int ExpectedFinalStackLength;
-        private const byte MaxStackSize = 10;
+
+        [SerializeField] public int MaxStackSize = 10;
+
         [SerializeField] internal EvaluationInstruction[] Content;
         public List<NamedValue> NamedValues;
         public List<string> Params;
@@ -79,7 +81,7 @@ namespace BurstExpressions.Runtime
                 }
 
 
-                evaluationGraph = new EvaluationGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize, (byte)Params.Count);
+                evaluationGraph = new EvaluationGraph(Content, (byte)ExpectedFinalStackLength, (byte)MaxStackSize, (byte)Params.Count);
                 onFormulaChanged?.Invoke(oldGraph, evaluationGraph);
                 oldGraph.Dispose();
             }
@@ -93,7 +95,7 @@ namespace BurstExpressions.Runtime
 
             _lastFormulaHashCode = Input?.GetHashCode() ?? 0;
 
-            evaluationGraph = new EvaluationGraph(Content, (byte)ExpectedFinalStackLength, MaxStackSize, (byte)Params.Count);
+            evaluationGraph = new EvaluationGraph(Content, (byte)ExpectedFinalStackLength, (byte)MaxStackSize, (byte)Params.Count);
         }
 
         public void Init()
@@ -136,6 +138,7 @@ namespace BurstExpressions.Runtime
                 try
                 {
                     parsed = Translator.Translate(root, NamedValues, Params, out v, Options);
+
                 }
                 catch (Exception e)
                 {
@@ -151,6 +154,7 @@ namespace BurstExpressions.Runtime
             }
 
             ExpectedFinalStackLength = v.NextIndex;
+            MaxStackSize = v.MaxStackSize;
             Content = parsed;
         }
 

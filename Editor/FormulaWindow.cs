@@ -53,24 +53,30 @@ namespace BurstExpressions.Editor
             // EditorGUI.LabelField(r, Format(_text), new GUIStyle(EditorStyles.label){richText = true, padding = s.padding});
 
             _e.OnInspectorGUI();
-            // Formula.LiveEdit(ref _evalgraph, (graph, newGraph) => _dirty = true);
+            Formula.LiveEdit(ref _evalgraph, (graph, newGraph) => _dirty = true);
             var c = Formula.Content;
             EditorGUILayout.LabelField("OpCodes");
             if (c != null)
+            {
+                EditorGUILayout.LabelField("Max stack size", Formula.MaxStackSize.ToString());
                 for (var i = 0; i < c.Length; i++)
                 {
                     var node = c[i];
                     EditorGUILayout.LabelField(i.ToString(), node.ToString() ?? "null");
                 }
+            }
             EditorGUILayout.LabelField("Evaluation Tester");
 
             EditorGUI.BeginChangeCheck();
-            ParamA = EditorGUILayout.Vector3Field("Parameter A", ParamA);
-            if (EditorGUI.EndChangeCheck())
+            var newParamA = EditorGUILayout.Vector3Field("Parameter A", ParamA);
+            if (EditorGUI.EndChangeCheck() || newParamA != ParamA)
+            {
+                ParamA = newParamA;
                 _dirty = true;
+            }
             if (_dirty && _evalgraph.Length > 0)
             {
-                Evaluator.Run<Evaluator.DefaultOps>(_evalgraph, (float3)ParamA, out var res);
+                Evaluator.Run(_evalgraph, (float3)ParamA, out var res);
                 Result = res;
                 _dirty = false;
             }

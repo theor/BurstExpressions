@@ -60,7 +60,13 @@ namespace BurstExpressions.Editor
 
             EditorGUI.BeginChangeCheck();
 
-            EditorGUI.PropertyField(rect, property.FindPropertyRelative(nameof(Formula.Input)), label);
+            var inputRect = rect;
+            inputRect.width -= 15;
+            EditorGUI.PropertyField(inputRect, property.FindPropertyRelative(nameof(Formula.Input)), label);
+            inputRect.x += inputRect.width;
+            inputRect.width = 15;
+            if (GUI.Button(inputRect, new GUIContent("?", "Available functions and constants")))
+                DocumentationGenerator.OpenDocumentation();
             rect.y += EditorGUIUtility.singleLineHeight;
             EditorGUI.PropertyField(rect, property.FindPropertyRelative(nameof(Formula.Options)));
             if (EditorGUI.EndChangeCheck())

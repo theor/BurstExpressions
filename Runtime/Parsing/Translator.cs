@@ -31,20 +31,10 @@ namespace BurstExpressions.Runtime.Parsing
 
         public class Variables
         {
+            public int MaxStackSize;
             public int NextIndex = 1;
-            public int MaxStackSize { get; private set; }
             internal int _currentStackSize;
             public Dictionary<string, VariableInfo> VariableInfos = new Dictionary<string, VariableInfo>();
-
-            internal int CurrentStackSize
-            {
-                get => _currentStackSize;
-                set
-                {
-                    MaxStackSize = Mathf.Max(MaxStackSize, value);
-                    _currentStackSize = value;
-                }
-            }
         }
 
         internal class FormulaParamNameComparer : IComparer<NamedValue>
@@ -71,7 +61,10 @@ namespace BurstExpressions.Runtime.Parsing
                 nodes.InsertRange(insertIndex, keyValuePair.Value.Translated);
                 insertIndex += keyValuePair.Value.Translated.Count;
             }
-            return (options & TranslationOptions.FoldConstantExpressions) != 0 ? ConstantFolding.Fold(nodes).ToArray() : nodes.ToArray();
+
+            var evaluationInstructions = (options & TranslationOptions.FoldConstantExpressions) != 0 ? ConstantFolding.Fold(nodes).ToArray() : nodes.ToArray();
+            v.MaxStackSize = ComputeMaxStackSizeContext.ComputeMaxStackSize(evaluationInstructions);
+            return evaluationInstructions;
         }
 
         private static void Rec(List<EvaluationInstruction> nodes, List<NamedValue> variables, IAstNode node,
@@ -81,24 +74,18 @@ namespace BurstExpressions.Runtime.Parsing
             switch (node)
             {
                 case ExpressionValue v:
-                    variableInfos.CurrentStackSize++;
                     nodes.Add(new EvaluationInstruction(EvalOp.Const_0, v.F));
                     break;
                 case Variable variable:
-                    variableInfos.CurrentStackSize++;
                     var paramIndex = formulaParams == null ? -1 : formulaParams.IndexOf(variable.Id);
                     if (paramIndex >= 0)
                         nodes.Add(EvaluationInstruction.Param((byte)(paramIndex + 1)));
                     else // not a param, but a user created variable (named value)
                     {
-                        switch (variable.Id.ToLowerInvariant())
+                        if (Constants.TryGetValue(variable.Id, out var constantValue))
                         {
-                            case "pi":
-                                nodes.Add(new EvaluationInstruction(EvalOp.Const_0, math.PI));
-                                return;
-                            case "e":
-                                nodes.Add(new EvaluationInstruction(EvalOp.Const_0, math.E));
-                                return;
+                            nodes.Add(new EvaluationInstruction(EvalOp.Const_0, constantValue));
+                            return;
                         }
                         var flag = variable.Id.StartsWith("f", StringComparison.OrdinalIgnoreCase)
                             ? NamedValue.FormulaParamFlag.Float
@@ -182,7 +169,6 @@ namespace BurstExpressions.Runtime.Parsing
                     // reverse order
                     Rec(nodes, variables, bin.B, formulaParams, variableInfos, translationOptions);
                     Rec(nodes, variables, bin.A, formulaParams, variableInfos, translationOptions);
-                    variableInfos.CurrentStackSize--;
                     nodes.Add(new EvaluationInstruction(bin.Type switch
                     {
                         OpType.Gt => EvalOp.Gt_2,
@@ -213,8 +199,6 @@ namespace BurstExpressions.Runtime.Parsing
                         throw new InvalidDataException($"Function {f.Id} expects {String.Join(" or ", overloads.Select(o => o.ArgumentCount).ToString())} arguments, got {f.Arguments.Count}");
                     var overload = overloads[overloadIndex];
 
-                    variableInfos.CurrentStackSize -= overload.ArgumentCount;
-                    variableInfos.CurrentStackSize++;
                     CheckArgCount(overload.ArgumentCount);
                     nodes.Add(new EvaluationInstruction(overload.OpCode));
                     break;

@@ -1,0 +1,22 @@
+ListView {
+    margin: 10px;
+}
+
+Elem.odd {
+    background-color: gray;
+}
+Elem {
+    flex-direction: row;
+}
+
+Elem > #opcode {
+    -unity-font-style: bold;
+    padding-left: 10px;
+    width: 150px;
+    align-self: center;
+}
+
+Elem > Label#help {
+    flex: 1;
+    align-self: center;
+}
