@@ -655,41 +655,72 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Test:
-    Input: 'v3(cos(t*x),sin(t*y),0)*z '
+    Input: v3(x,y,0)*f
     Options: -1
-    ExpectedFinalStackLength: 1
+    ExpectedFinalStackLength: 4
+    MaxStackSize: 7
     Content:
-    - Op: 1
-      Val:
-        x: 3.96
-        y: 3.96
-        z: 3.96
-      Index: 0
-    - Op: 1
-      Val:
-        x: 0
-        y: 0
-        z: 0
-      Index: 0
-    - Op: 1
-      Val:
-        x: 3.25
-        y: 3.25
-        z: 3.25
-      Index: 0
     - Op: 2
       Val:
         x: 0
         y: 0
         z: 0
       Index: 1
+    - Op: 1
+      Val:
+        x: 4
+        y: 4
+        z: 4
+      Index: 0
     - Op: 6
       Val:
         x: 0
         y: 0
         z: 0
       Index: 0
-    - Op: 16
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
+    - Op: 1
+      Val:
+        x: 4
+        y: 4
+        z: 4
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 18
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
+    - Op: 1
+      Val:
+        x: 3
+        y: 3
+        z: 3
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 18
       Val:
         x: 0
         y: 0
@@ -697,29 +728,179 @@ MonoBehaviour:
       Index: 0
     - Op: 1
       Val:
-        x: 3.77
-        y: 3.77
-        z: 3.77
+        x: 2
+        y: 2
+        z: 2
       Index: 0
-    - Op: 2
-      Val:
-        x: 0
-        y: 0
-        z: 0
-      Index: 1
     - Op: 6
       Val:
         x: 0
         y: 0
         z: 0
       Index: 0
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
+    - Op: 1
+      Val:
+        x: 2
+        y: 2
+        z: 2
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 18
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 1
+      Val:
+        x: 5
+        y: 5
+        z: 5
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
+    - Op: 18
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 1
+      Val:
+        x: 13
+        y: 13
+        z: 13
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 5
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 5
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 5
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
     - Op: 17
       Val:
         x: 0
         y: 0
         z: 0
       Index: 0
-    - Op: 26
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
+    - Op: 17
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 1
+    - Op: 17
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 1
+      Val:
+        x: 16
+        y: 16
+        z: 16
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 6
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 1
+      Val:
+        x: 0.3
+        y: 0.3
+        z: 0.3
+      Index: 0
+    - Op: 1
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 0
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 2
+    - Op: 3
+      Val:
+        x: 0
+        y: 0
+        z: 0
+      Index: 3
+    - Op: 27
       Val:
         x: 0
         y: 0
@@ -732,18 +913,22 @@ MonoBehaviour:
         z: 0
       Index: 0
     NamedValues:
+    - Name: f
+      Value: {x: 0.3, y: 0, z: 0}
+      IsSingleFloat: 1
+      SubFormula: 
+    - Name: tt
+      Value: {x: 0, y: 0, z: 0}
+      IsSingleFloat: 2
+      SubFormula: 4*t
     - Name: x
       Value: {x: 3.77, y: 0, z: 0}
-      IsSingleFloat: 1
-      SubFormula: 
+      IsSingleFloat: 2
+      SubFormula: 16*sin(tt)*sin(tt)*sin(tt)
     - Name: y
       Value: {x: 3.25, y: 0, z: 0}
-      IsSingleFloat: 1
-      SubFormula: 
-    - Name: z
-      Value: {x: 3.96, y: 0, z: 0}
-      IsSingleFloat: 1
-      SubFormula: x
+      IsSingleFloat: 2
+      SubFormula: 13*cos(tt)-5*cos(2*tt) -2*cos(3*tt) -cos(4*tt)
     Params:
     - t
 --- !u!73398921 &1692057714

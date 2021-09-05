@@ -7,102 +7,55 @@ namespace uCodeEditor
     public class ShaderCodeEditor
     {
         public string name { get; private set; }
-        public SerializedProperty value { get; private set; }
-        public SerializedProperty folded { get; private set; }
+        // public SerializedProperty value { get; private set; }
+        // public SerializedProperty folded { get; private set; }
 
         CodeEditor editor_;
         Vector2 scrollPos_;
         Font font_;
         private Rect _lastRect;
 
-        public string code
-        {
-            get { return value != null ? value.stringValue : ""; }
-            private set { this.value.stringValue = value; }
-        }
 
-        public ShaderCodeEditor(string name, SerializedProperty value, SerializedProperty folded = null)
+
+        public ShaderCodeEditor(string name)
         {
             this.name = name;
-            this.value = value;
-            this.folded = folded;
 
             font_ = Resources.Load<Font>(Common.Editor.font);
 
-            Color color, bgColor;
-            ColorUtility.TryParseHtmlString(Common.Color.background, out bgColor);
-            ColorUtility.TryParseHtmlString(Common.Color.color, out color);
+            ColorUtility.TryParseHtmlString(Common.Color.background, out var bgColor);
+            ColorUtility.TryParseHtmlString(Common.Color.color, out var color);
 
-            editor_ = new CodeEditor(name);
-            editor_.backgroundColor = bgColor;
-            editor_.textColor = color;
-            editor_.highlighter = ShaderHighlighter.Highlight;
+            var style = new GUIStyle(GUI.skin.textArea)
+            {
+                padding = new RectOffset(2, 2, 2, 2),
+                font = font_,
+                fontSize = Common.Editor.fontSize,
+                wordWrap = Common.Editor.wordWrap
+            };
+            editor_ = new CodeEditor(style)
+            {
+                backgroundColor = bgColor,
+                textColor = color,
+                highlighter = ShaderHighlighter.Highlight
+            };
         }
 
-        public void Draw(Rect rect)
+        public void Draw(SerializedProperty value, Rect rect, string controlName, GUIContent label = default)
         {
-            // if (Event.current.type == EventType.Repaint)
-            // _lastRect = rect;
-
-            // Debug.Log($"{Event.current.type} {rect}");
-            // var viewRe2ct = new Rect(0, 0, rect.width - 20, viewHeight);
-            // scrollPos_ = GUI.BeginScrollView(rect, scrollPos_, viewRect);
+            if (label != default)
             {
-                var style = new GUIStyle(GUI.skin.textArea);
-                style.padding = new RectOffset(6, 6, 6, 6);
-                style.font = font_;
-                style.fontSize = Common.Editor.fontSize;
-                style.wordWrap = Common.Editor.wordWrap;
-
-                var editedCode = editor_.Draw(code, style, rect);
-                if (editedCode != code)
-                {
-                    code = editedCode;
-                }
+                EditorGUI.PrefixLabel(rect, label);
+                var labelWidth = EditorGUIUtility.labelWidth - EditorGUI.indentLevel * 15;
+                rect.x += labelWidth;
+                rect.width -= labelWidth;
             }
-            // GUI.EndScrollView();
-        }
-        public void Draw()
-        {
-            if (folded != null)
+            var code = value.stringValue;
+            var editedCode = editor_.Draw(code, rect, controlName);
+            if (editedCode != code)
             {
-                var preFolded = folded.boolValue;
-                folded.boolValue = Utils.Foldout(name, folded.boolValue);
-
-                if (!folded.boolValue)
-                {
-                    if (preFolded)
-                    {
-                        GUI.FocusControl("");
-                    }
-                    return;
-                }
-
-                if (!preFolded)
-                {
-                    GUI.FocusControl(name);
-                }
+                value.stringValue = editedCode;
             }
-
-            var minHeight = GUILayout.MinHeight(Common.Editor.minHeight);
-            var maxHeight = GUILayout.MaxHeight(Screen.height);
-            scrollPos_ = EditorGUILayout.BeginScrollView(scrollPos_, minHeight, maxHeight);
-            {
-                var style = new GUIStyle(GUI.skin.textArea);
-                style.padding = new RectOffset(6, 6, 6, 6);
-                style.font = font_;
-                style.fontSize = Common.Editor.fontSize;
-                style.wordWrap = Common.Editor.wordWrap;
-
-                var editedCode = editor_.Draw(code, style);
-                if (editedCode != code)
-                {
-                    code = editedCode;
-                }
-            }
-            EditorGUILayout.EndScrollView();
-
-            EditorGUILayout.Space();
         }
     }
 

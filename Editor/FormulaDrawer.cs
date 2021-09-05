@@ -31,7 +31,7 @@ namespace BurstExpressions.Editor
                         i++;
                 }
 
-            return EditorGUIUtility.singleLineHeight * (i);
+            return EditorGUIUtility.singleLineHeight * (i) + EditorGUIUtility.standardVerticalSpacing * (namedValues.arraySize);
         }
 
         private ShaderCodeEditor _editor;
@@ -40,9 +40,9 @@ namespace BurstExpressions.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var prop = property.FindPropertyRelative(nameof(Formula.Input));
-            _editorLineHeight = prop.stringValue.Count(c => c == '\n') + 1.5f;
+            _editorLineHeight = prop.stringValue.Count(c => c == '\n') + 1f;
             if (_editor == null)
-                _editor = new ShaderCodeEditor("formulaCode", prop);
+                _editor = new ShaderCodeEditor("formulaCode");
 
             var formula = (Formula)property.GetSerializedObject();
 
@@ -72,7 +72,7 @@ namespace BurstExpressions.Editor
 
             var inputRect = rect;
             inputRect.width -= 15;
-            _editor.Draw(inputRect);
+            _editor.Draw(prop, inputRect, "formula_input");
             // EditorGUI.PropertyField(inputRect, property.FindPropertyRelative(nameof(Formula.Input)), label);
             inputRect.x += inputRect.width;
             inputRect.width = 15;
@@ -117,26 +117,28 @@ namespace BurstExpressions.Editor
                 var flagProp = elt.FindPropertyRelative(nameof(NamedValue.IsSingleFloat));
                 var valueRect = rect;
                 var flagsRect = rect;
-                var flagPRopWidth = 100;
+                var flagPRopWidth = 150;
                 valueRect.xMax -= flagPRopWidth;
-                flagsRect.xMin = flagsRect.xMax - flagPRopWidth;
+                flagsRect.xMin = valueRect.xMax;
+                var namePropStringValue = nameProp.stringValue;
                 switch (flagProp.enumValueIndex)
                 {
                     case (int)NamedValue.FormulaParamFlag.Vector3:
                         EditorGUI.BeginChangeCheck();
-                        EditorGUI.PropertyField(valueRect, valProp, new GUIContent(nameProp.stringValue));
+                        EditorGUI.PropertyField(valueRect, valProp, new GUIContent(namePropStringValue));
                         if (EditorGUI.EndChangeCheck()) UpdateInstance(formulaObject);
                         break;
                     case (int)NamedValue.FormulaParamFlag.Float:
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.PropertyField(valueRect, valProp.FindPropertyRelative(nameof(Vector3.x)),
-                            new GUIContent(nameProp.stringValue));
+                            new GUIContent(namePropStringValue));
                         if (EditorGUI.EndChangeCheck()) UpdateInstance(formulaObject);
                         break;
                     case (int)NamedValue.FormulaParamFlag.Formula:
                         EditorGUI.BeginChangeCheck();
+                        // _editor.Draw(elt.FindPropertyRelative(nameof(NamedValue.SubFormula)), valueRect, "formula_input_" + namePropStringValue, new GUIContent(namePropStringValue));
                         EditorGUI.PropertyField(valueRect, elt.FindPropertyRelative(nameof(NamedValue.SubFormula)),
-                            new GUIContent(nameProp.stringValue));
+                        new GUIContent(nameProp.stringValue));
                         if (EditorGUI.EndChangeCheck()) UpdateInstance(formulaObject, i);
                         break;
                 }
@@ -153,6 +155,8 @@ namespace BurstExpressions.Editor
                     r.xMin += 16;
                     EditorGUI.HelpBox(r, formula.NamedValues[i].SubFormulaError, MessageType.Error);
                 }
+
+                rect.y += EditorGUIUtility.standardVerticalSpacing;
             }
 
             EditorGUI.indentLevel--;

@@ -153,16 +153,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Test:
-    Input: v3(i, sin(t*f + i)*y, 0)
+    Input: v3(i, sin(t*f + i)*y, 1)
     Options: -1
     ExpectedFinalStackLength: 1
-    MaxStackSize: 10
+    MaxStackSize: 5
     Content:
     - Op: 1
       Val:
-        x: 0
-        y: 0
-        z: 0
+        x: 1
+        y: 1
+        z: 1
       Index: 0
     - Op: 1
       Val:
@@ -200,7 +200,7 @@ MonoBehaviour:
         y: 0
         z: 0
       Index: 0
-    - Op: 16
+    - Op: 17
       Val:
         x: 0
         y: 0
@@ -218,7 +218,7 @@ MonoBehaviour:
         y: 0
         z: 0
       Index: 2
-    - Op: 26
+    - Op: 27
       Val:
         x: 0
         y: 0
