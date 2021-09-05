@@ -73,10 +73,11 @@ namespace BurstExpressions.Runtime
                 Init();
                 _lastFormulaHashCode = Input?.GetHashCode() ?? 0;
                 EvaluationGraph oldGraph = evaluationGraph;
-                if (Content == null)
+                if (Content == null || _error != null)
                 {
                     onFormulaChanged?.Invoke(oldGraph, default);
                     oldGraph.Dispose();
+                    evaluationGraph = default;
                     return;
                 }
 

@@ -39,7 +39,7 @@ namespace BurstExpressions.Runtime.Runtime
 
         public unsafe void Dispose()
         {
-            if (Nodes != null)
+            if (Length > 0 && Nodes != null)
                 UnsafeUtility.Free(Nodes, _allocator);
         }
     }

@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using BurstExpressions.Runtime;
 using BurstExpressions.Runtime.Parsing;
+using uCodeEditor;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -13,7 +15,7 @@ namespace BurstExpressions.Editor
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            int i = 2; // input + options
+            float i = 1 + _editorLineHeight; // input + options
             var namedValues = property.FindPropertyRelative(nameof(Formula.NamedValues));
             i += namedValues.arraySize;
             var paramsProp = property.FindPropertyRelative(nameof(Formula.Params));
@@ -29,11 +31,19 @@ namespace BurstExpressions.Editor
                         i++;
                 }
 
-            return EditorGUIUtility.singleLineHeight * i;
+            return EditorGUIUtility.singleLineHeight * (i);
         }
+
+        private ShaderCodeEditor _editor;
+        private float _editorLineHeight = 4;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            var prop = property.FindPropertyRelative(nameof(Formula.Input));
+            _editorLineHeight = prop.stringValue.Count(c => c == '\n') + 1.5f;
+            if (_editor == null)
+                _editor = new ShaderCodeEditor("formulaCode", prop);
+
             var formula = (Formula)property.GetSerializedObject();
 
             void UpdateInstance(SerializedObject serializedObject, int subFormulaIndexToParse = -1)
@@ -56,18 +66,20 @@ namespace BurstExpressions.Editor
             EditorGUI.BeginProperty(position, label, property);
             var formulaObject = property.serializedObject;
 
-            var rect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            var rect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight * _editorLineHeight - 2);
 
             EditorGUI.BeginChangeCheck();
 
             var inputRect = rect;
             inputRect.width -= 15;
-            EditorGUI.PropertyField(inputRect, property.FindPropertyRelative(nameof(Formula.Input)), label);
+            _editor.Draw(inputRect);
+            // EditorGUI.PropertyField(inputRect, property.FindPropertyRelative(nameof(Formula.Input)), label);
             inputRect.x += inputRect.width;
             inputRect.width = 15;
             if (GUI.Button(inputRect, new GUIContent("?", "Available functions and constants")))
                 DocumentationGenerator.OpenDocumentation();
-            rect.y += EditorGUIUtility.singleLineHeight;
+            rect.y += EditorGUIUtility.singleLineHeight * _editorLineHeight;
+            rect.height = EditorGUIUtility.singleLineHeight;
             EditorGUI.PropertyField(rect, property.FindPropertyRelative(nameof(Formula.Options)));
             if (EditorGUI.EndChangeCheck())
             {
@@ -141,8 +153,6 @@ namespace BurstExpressions.Editor
                     r.xMin += 16;
                     EditorGUI.HelpBox(r, formula.NamedValues[i].SubFormulaError, MessageType.Error);
                 }
-
-
             }
 
             EditorGUI.indentLevel--;

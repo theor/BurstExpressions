@@ -83,7 +83,7 @@ namespace BurstExpressions.Runtime.Parsing
                     CurrentTokenType = Token.Identifier;
                     StringBuilder sb = new StringBuilder();
                     while (!Done && NextChar != ')' && NextChar != ',' && !MatchOp(out _) && !Char.IsWhiteSpace(NextChar))
-                        sb.Append(char.ToLowerInvariant(ConsumeChar()));
+                        sb.Append(ConsumeChar());
                     CurrentToken = sb.ToString();
                 }
             }

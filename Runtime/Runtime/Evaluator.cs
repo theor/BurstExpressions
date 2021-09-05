@@ -111,6 +111,8 @@ namespace BurstExpressions.Runtime.Runtime
         [BurstCompile]
         public unsafe float3 Run<TOperators>(in EvaluationGraph graph, in TOperators operators, float3* @params, int parameterCount) where TOperators : struct, IOperators
         {
+            if (graph.Length == 0)
+                return default;
             Assert.AreEqual(parameterCount, graph.ParameterCount);
             using (var stack = new UnsafeList<float3>(graph.MaxStackSize, Allocator.Temp))
             {

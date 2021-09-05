@@ -235,7 +235,7 @@ MonoBehaviour:
     Input: 1 - cos((x * PI) / 2)
     Options: 0
     ExpectedFinalStackLength: 1
-    MaxStackSize: 10
+    MaxStackSize: 3
     Content:
     - Op: 1
       Val:
@@ -267,7 +267,7 @@ MonoBehaviour:
         y: 0
         z: 0
       Index: 0
-    - Op: 17
+    - Op: 18
       Val:
         x: 0
         y: 0
