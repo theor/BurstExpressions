@@ -6,6 +6,8 @@ An optimizing  expression parser with an efficient Burst-compiled evaluation eng
 
 Details in my blog article here: [https://theor.xyz/posts/burst-expressions/](https://theor.xyz/posts/burst-expressions/)
 
+List of available functions [here](https://github.com/theor/BurstExpressions/blob/main/Doc/functions.md)
+
 When declaring a formula, you can specify the parameters it will receive from the code, like the current time `t`.
 
 Any value that is not a parameter will be considered as a *named value*. A named value can be a single `float` or `float3` or a nested formula that can use the same parameters and named values and declare new named values.
