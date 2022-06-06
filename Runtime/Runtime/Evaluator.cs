@@ -25,55 +25,56 @@ namespace BurstExpressions.Runtime.Runtime
     public struct Evaluator
     {
         [BurstCompile]
-        public static unsafe void Run(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res)
+        public static unsafe void Run2(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res)
         {
-            res = new Evaluator().Run(graph, default(DefaultOps), @params, parameterCount);
+            res = new Evaluator().Run1(graph, default(DefaultOps), @params, parameterCount);
         }
 
-        public static unsafe void Run(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res)
+        public static unsafe void Run3(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res)
         {
-            res = new Evaluator().Run(graph, default(DefaultOps), (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
-        }
-
-
-        public static unsafe void Run(in EvaluationGraph graph, float3[] @params, out float3 res)
-        {
-            fixed (float3* ptr = @params)
-                res = new Evaluator().Run(graph, default(DefaultOps), ptr, @params.Length);
-        }
-
-        [BurstCompile]
-        public static unsafe void Run(in EvaluationGraph graph, in float3 singleParam, out float3 res)
-        {
-            var p2 = singleParam;
-            Run(graph, &p2, 1, out res, default(DefaultOps));
+            res = new Evaluator().Run1(graph, default(DefaultOps), (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
         }
 
 
-        [BurstCompile]
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res, TOperators ops) where TOperators : struct, IOperators
-        {
-            res = new Evaluator().Run(graph, ops, @params, parameterCount);
-        }
-
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res, TOperators ops) where TOperators : struct, IOperators
-        {
-            res = new Evaluator().Run(graph, ops, (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
-        }
-
-
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3[] @params, out float3 res, TOperators ops) where TOperators : struct, IOperators
+        public static unsafe void Run4(in EvaluationGraph graph, float3[] @params, out float3 res)
         {
             fixed (float3* ptr = @params)
-                res = new Evaluator().Run(graph, ops, ptr, @params.Length);
+                res = new Evaluator().Run1(graph, default(DefaultOps), ptr, @params.Length);
         }
 
         [BurstCompile]
-        public static unsafe void Run<TOperators>(in EvaluationGraph graph, in float3 singleParam, out float3 res, TOperators ops) where TOperators : struct, IOperators
+        public static unsafe void Run5(in EvaluationGraph graph, in float3 singleParam, out float3 res)
         {
-            var p2 = singleParam;
-            Run(graph, &p2, 1, out res, ops);
+            res = 0;
+            // var p2 = singleParam;
+            // RunOp(graph, &p2, 1, out res, default(DefaultOps));
         }
+
+
+        // [BurstCompile]
+        // public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3* @params, int parameterCount, out float3 res, TOperators ops) where TOperators : struct, IOperators
+        // {
+        //     res = new Evaluator().Run(graph, ops, @params, parameterCount);
+        // }
+        //
+        // public static unsafe void Run<TOperators>(in EvaluationGraph graph, NativeArray<float3> @params, out float3 res, TOperators ops) where TOperators : struct, IOperators
+        // {
+        //     res = new Evaluator().Run(graph, ops, (float3*)@params.GetUnsafeReadOnlyPtr(), @params.Length);
+        // }
+        //
+        //
+        // public static unsafe void Run<TOperators>(in EvaluationGraph graph, float3[] @params, out float3 res, TOperators ops) where TOperators : struct, IOperators
+        // {
+        //     fixed (float3* ptr = @params)
+        //         res = new Evaluator().Run(graph, ops, ptr, @params.Length);
+        // }
+        //
+        // [BurstCompile]
+        // public static unsafe void RunOp<TOperators>(in EvaluationGraph graph, in float3 singleParam, out float3 res, TOperators ops) where TOperators : struct, IOperators
+        // {
+        //     var p2 = singleParam;
+        //     Run(graph, &p2, 1, out res, ops);
+        // }
 
         struct Impl : IContext
         {
@@ -109,7 +110,7 @@ namespace BurstExpressions.Runtime.Runtime
         }
 
         [BurstCompile]
-        public unsafe float3 Run<TOperators>(in EvaluationGraph graph, in TOperators operators, float3* @params, int parameterCount) where TOperators : struct, IOperators
+        public unsafe float3 Run1<TOperators>(in EvaluationGraph graph, in TOperators operators, float3* @params, int parameterCount) where TOperators : struct, IOperators
         {
             if (graph.Length == 0)
                 return default;

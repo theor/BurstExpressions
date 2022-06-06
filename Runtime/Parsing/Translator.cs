@@ -92,6 +92,8 @@ namespace BurstExpressions.Runtime.Parsing
                             : variable.Id.StartsWith("s", StringComparison.OrdinalIgnoreCase)
                                 ? NamedValue.FormulaParamFlag.Formula
                                 : NamedValue.FormulaParamFlag.Vector3;
+                        if (flag == NamedValue.FormulaParamFlag.Formula && !variable.Id.StartsWith("$"))
+                            throw new InvalidDataException($"Unknown parameter or constant '{variable.Id}'. If what you want is a sub-formula, prefix the name with '$'.");
                         var variableParam = new NamedValue(variable.Id, flag);
                         var idx = variables.BinarySearch(variableParam, s_ParamNameComparer);
 
@@ -157,7 +159,7 @@ namespace BurstExpressions.Runtime.Parsing
                                 default:
                                     throw new ArgumentOutOfRangeException();
                             }
-                            
+
                             nodes.Add(new EvaluationInstruction(EvalOp.Const_0, v));
                         }
                     }
@@ -190,7 +192,7 @@ namespace BurstExpressions.Runtime.Parsing
                         case OpType.Div: op = EvalOp.Div_2; break;
                         case OpType.Mod: op = EvalOp.Mod_2; break;
                     }
-                    
+
                     nodes.Add(new EvaluationInstruction(op));
                     break;
                 case FuncCall f:
@@ -214,7 +216,6 @@ namespace BurstExpressions.Runtime.Parsing
                     break;
 
                 default:
-                    Debug.LogError("NULL " + node);
                     throw new NotImplementedException(node?.ToString() ?? "null");
             }
         }

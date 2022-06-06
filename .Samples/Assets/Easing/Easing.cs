@@ -36,7 +36,7 @@ public class Easing : MonoBehaviour
             t -= 1;
         }
 
-        Evaluator.Run(_evalgraph, Mathf.Clamp01(t), out var res);
+        Evaluator.Run5(_evalgraph, Mathf.Clamp01(t), out var res);
         // Debug.Log($"{t:F2} {res:F1}");
         var transformLocalPosition = transform.localPosition;
         transformLocalPosition.y = reversed ? (1 - res.x) : res.x;

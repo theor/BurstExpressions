@@ -73,7 +73,7 @@ public class EvaluationTests : EvaluationTestsBase
         {
             Evaluator state = new Evaluator();
             NativeSlice<float3> nativeSlice = Params.Slice(index * EvaluationGraph.ParameterCount, EvaluationGraph.ParameterCount);
-            Results[index] = state.Run(EvaluationGraph, new Evaluator.DefaultOps(), (float3*)nativeSlice.GetUnsafeReadOnlyPtr(), nativeSlice.Length);
+            Results[index] = state.Run1(EvaluationGraph, new Evaluator.DefaultOps(), (float3*)nativeSlice.GetUnsafeReadOnlyPtr(), nativeSlice.Length);
         }
     }
 

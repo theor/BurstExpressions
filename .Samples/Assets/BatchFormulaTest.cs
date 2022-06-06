@@ -86,7 +86,7 @@ public class BatchFormulaTest : MonoBehaviour
             float3* @params = stackalloc float3[2];
             @params[0] = Time;
             @params[1] = index;
-            Results[index] = state.Run<Evaluator.DefaultOps>(EvaluationGraph, default, @params, 2);
+            Results[index] = state.Run1<Evaluator.DefaultOps>(EvaluationGraph, default, @params, 2);
         }
     }
 

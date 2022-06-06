@@ -87,7 +87,7 @@ public class PerformanceTests : EvaluationTestsBase
                     for (int index = 0; index < elementCount; index++)
                     {
                         var @params = (float3)inputs[index];
-                        Evaluator.Run(graph, @params, out float3 res);
+                        Evaluator.Run5(graph, @params, out float3 res);
                         outputs[index] = res;
                     }
                 })
@@ -185,7 +185,7 @@ public class PerformanceTests : EvaluationTestsBase
         public void Execute(int index)
         {
             var @params = (float3)Inputs[index];
-            Evaluator.Run(Graph, @params, out float3 res);
+            Evaluator.Run5(Graph, @params, out float3 res);
             Outputs[index] = res;
         }
     }
@@ -236,7 +236,7 @@ public class PerformanceTests : EvaluationTestsBase
             for (int index = 0; index < Inputs.Length; index++)
             {
                 var @params = (float3)Inputs[index];
-                Evaluator.Run(Graph, @params, out float3 res);
+                Evaluator.Run5(Graph, @params, out float3 res);
                 Outputs[index] = res;
             }
         }
