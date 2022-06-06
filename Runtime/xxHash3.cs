@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Unity.Burst;
+using Unity.Collections;
 #if !NET_DOTS
 using Unity.Burst.Intrinsics;
 #endif
@@ -7,7 +8,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using Unity.Mathematics;
 
-namespace BurstExpressions.Runtime.Runtime
+namespace Unity.Collections
 {
     /// <summary>
     /// A feature complete hashing API based on xxHash3 (https://github.com/Cyan4973/xxHash)
@@ -17,7 +18,7 @@ namespace BurstExpressions.Runtime.Runtime
     ///  - Compute 64bits or 128bits hash keys, based on a private key, with an optional given seed value.
     ///  - Hash on buffer (with or without a ulong based seed value)
     ///  - Hash on buffer while copying the data to a destination
-    ///  - Use instances of <see cref="xxHash3.StreamingState"/> to accumulate data to hash in multiple calls, suited for small data, then retrieve the hash key at the end.
+    ///  - Use instances of <see cref="Unity.Collections.xxHash3.StreamingState"/> to accumulate data to hash in multiple calls, suited for small data, then retrieve the hash key at the end.
     ///  - xxHash3 has several implementation based on the size to hash to ensure best performances
     ///  - We currently have two implementations:
     ///    - A generic one based on Unity.Mathematics, that should always be executed compiled with Burst.
@@ -26,7 +27,6 @@ namespace BurstExpressions.Runtime.Runtime
     ///    (*) Only when the hashing size justifies such transition.
     /// </remarks>
     [BurstCompile]
-    [BurstCompatible]
     public static partial class xxHash3
     {
         #region Public API
@@ -41,7 +41,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             fixed (void* secret = xxHashDefaultKey.kSecret)
             {
-                return ToUint2(Hash64Internal((byte*) input, null, length, (byte*) secret, 0));
+                return ToUint2(Hash64Internal((byte*)input, null, length, (byte*)secret, 0));
             }
         }
 
@@ -52,10 +52,10 @@ namespace BurstExpressions.Runtime.Runtime
         /// <typeparam name="T">The input type.</typeparam>
         /// <param name="input">The input struct that will be hashed</param>
         /// <returns>The hash result</returns>
-        [BurstCompatible(GenericTypeArguments = new [] { typeof(int) })]
         public static unsafe uint2 Hash64<T>(in T input) where T : unmanaged
         {
-            return Hash64(UnsafeUtilityExtensions.AddressOf(input), UnsafeUtility.SizeOf<T>());
+            T i = input;
+            return Hash64(UnsafeUtility.AddressOf(ref i), UnsafeUtility.SizeOf<T>());
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             fixed (byte* secret = xxHashDefaultKey.kSecret)
             {
-                return ToUint2(Hash64Internal((byte*) input, null, length, secret, seed));
+                return ToUint2(Hash64Internal((byte*)input, null, length, secret, seed));
             }
         }
 
@@ -83,7 +83,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             fixed (void* secret = xxHashDefaultKey.kSecret)
             {
-                Hash128Internal((byte*) input, null, length, (byte*) secret, 0, out var result);
+                Hash128Internal((byte*)input, null, length, (byte*)secret, 0, out var result);
                 return result;
             }
         }
@@ -94,10 +94,10 @@ namespace BurstExpressions.Runtime.Runtime
         /// <typeparam name="T">The input type.</typeparam>
         /// <param name="input">The input struct that will be hashed</param>
         /// <returns>The hash result</returns>
-        [BurstCompatible(GenericTypeArguments = new [] { typeof(int) })]
         public static unsafe uint4 Hash128<T>(in T input) where T : unmanaged
         {
-            return Hash128(UnsafeUtilityExtensions.AddressOf(input), UnsafeUtility.SizeOf<T>());
+            T i = input;
+            return Hash128(UnsafeUtility.AddressOf(ref i), UnsafeUtility.SizeOf<T>());
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             fixed (byte* secret = xxHashDefaultKey.kSecret)
             {
-                Hash128Internal((byte*) input, (byte*) destination, length, secret, 0, out var result);
+                Hash128Internal((byte*)input, (byte*)destination, length, secret, 0, out var result);
 
                 return result;
             }
@@ -130,7 +130,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             fixed (byte* secret = xxHashDefaultKey.kSecret)
             {
-                Hash128Internal((byte*) input, null, length, secret, seed, out var result);
+                Hash128Internal((byte*)input, null, length, secret, seed, out var result);
 
                 return result;
             }
@@ -148,7 +148,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             fixed (byte* secret = xxHashDefaultKey.kSecret)
             {
-                Hash128Internal((byte*) input, (byte*) destination, length, secret, seed, out var result);
+                Hash128Internal((byte*)input, (byte*)destination, length, secret, seed, out var result);
 
                 return result;
             }
@@ -254,7 +254,7 @@ namespace BurstExpressions.Runtime.Runtime
         [BurstCompile]
         private static unsafe void _mono_to_burst_Hash128Long(byte* input, byte* dest, long length, byte* secret, out uint4 result)
         {
-             _Hash128Long(input, dest, length, secret, out result);
+            _Hash128Long(input, dest, length, secret, out result);
         }
 
         [BurstDiscard]
@@ -291,7 +291,7 @@ namespace BurstExpressions.Runtime.Runtime
 
             _Hash128Long(input, dest, length, secret, out result);
         }
-#endregion
+        #endregion
 
         internal static unsafe ulong Hash64Internal(byte* input, byte* dest, long length, byte* secret, ulong seed)
         {
@@ -312,12 +312,12 @@ namespace BurstExpressions.Runtime.Runtime
 
             if (seed != 0)
             {
-                var newSecret = (byte*) Memory.Unmanaged.Allocate(SECRET_KEY_SIZE, 64, Allocator.Temp);
+                var newSecret = (byte*)UnsafeUtility.Malloc(SECRET_KEY_SIZE, 64, Allocator.Temp);
 
                 EncodeSecretKey(newSecret, secret, seed);
                 var result = Hash64Long(input, dest, length, newSecret);
 
-                Memory.Unmanaged.Free(newSecret, Allocator.Temp);
+                UnsafeUtility.Free(newSecret, Allocator.Temp);
 
                 return result;
             }
@@ -359,7 +359,7 @@ namespace BurstExpressions.Runtime.Runtime
                 var addr = stackalloc byte[SECRET_KEY_SIZE + 31];
 
                 // Aligned the allocated address on 32 bytes
-                var newSecret = (byte*) ((ulong) addr + 31 & 0xFFFFFFFFFFFFFFE0);
+                var newSecret = (byte*)((ulong)addr + 31 & 0xFFFFFFFFFFFFFFE0);
 
                 EncodeSecretKey(newSecret, secret, seed);
                 Hash128Long(input, dest, length, newSecret, out result);
@@ -380,8 +380,8 @@ namespace BurstExpressions.Runtime.Runtime
                 var c1 = input[0];
                 var c2 = input[len >> 1];
                 var c3 = input[len - 1];
-                var combined = ((uint)c1 << 16) | ((uint)c2  << 24) | ((uint)c3 <<  0) | ((uint)len << 8);
-                ulong bitflip = (Read32LE(secret) ^ Read32LE(secret+4)) + seed;
+                var combined = ((uint)c1 << 16) | ((uint)c2 << 24) | ((uint)c3 << 0) | ((uint)len << 8);
+                ulong bitflip = (Read32LE(secret) ^ Read32LE(secret + 4)) + seed;
                 ulong keyed = (ulong)combined ^ bitflip;
                 return AvalancheH64(keyed);
             }
@@ -394,7 +394,7 @@ namespace BurstExpressions.Runtime.Runtime
                 seed ^= (ulong)Swap32((uint)seed) << 32;
                 var input1 = Read32LE(input);
                 var input2 = Read32LE(input + length - 4);
-                var bitflip = (Read64LE(secret+8) ^ Read64LE(secret+16)) - seed;
+                var bitflip = (Read64LE(secret + 8) ^ Read64LE(secret + 16)) - seed;
                 var input64 = input2 + (((ulong)input1) << 32);
                 var keyed = input64 ^ bitflip;
                 return rrmxmx(keyed, (ulong)length);
@@ -405,8 +405,8 @@ namespace BurstExpressions.Runtime.Runtime
         {
             unchecked
             {
-                var bitflip1 = (Read64LE(secret+24) ^ Read64LE(secret+32)) + seed;
-                var bitflip2 = (Read64LE(secret+40) ^ Read64LE(secret+48)) - seed;
+                var bitflip1 = (Read64LE(secret + 24) ^ Read64LE(secret + 32)) + seed;
+                var bitflip2 = (Read64LE(secret + 40) ^ Read64LE(secret + 48)) - seed;
                 var input_lo = Read64LE(input) ^ bitflip1;
                 var input_hi = Read64LE(input + length - 8) ^ bitflip2;
                 var acc = (ulong)length + Swap64(input_lo) + input_hi + Mul128Fold64(input_lo, input_hi);
@@ -431,14 +431,14 @@ namespace BurstExpressions.Runtime.Runtime
                 return Hash64Len1To3(input, length, secret, seed);
             }
 
-            return AvalancheH64(seed ^ (Read64LE(secret+56) ^ Read64LE(secret+64)));
+            return AvalancheH64(seed ^ (Read64LE(secret + 56) ^ Read64LE(secret + 64)));
         }
 
         private static unsafe ulong Hash64Len17To128(byte* input, long length, byte* secret, ulong seed)
         {
             unchecked
             {
-                var acc = (ulong) length * PRIME64_1;
+                var acc = (ulong)length * PRIME64_1;
                 if (length > 32)
                 {
                     if (length > 64)
@@ -468,8 +468,8 @@ namespace BurstExpressions.Runtime.Runtime
         {
             unchecked
             {
-                var acc = (ulong) length * PRIME64_1;
-                var nbRounds = (int) length / 16;
+                var acc = (ulong)length * PRIME64_1;
+                var nbRounds = (int)length / 16;
                 for (var i = 0; i < 8; i++)
                 {
                     acc += Mix16(input + (16 * i), secret + (16 * i), seed);
@@ -490,7 +490,7 @@ namespace BurstExpressions.Runtime.Runtime
         private static unsafe void _Hash64Long(byte* input, byte* dest, long length, byte* secret, out ulong result)
         {
             var addr = stackalloc byte[STRIPE_LEN + 31];
-            var acc = (ulong*) ((ulong) addr + 31 & 0xFFFFFFFFFFFFFFE0); // Aligned the allocated address on 32 bytes
+            var acc = (ulong*)((ulong)addr + 31 & 0xFFFFFFFFFFFFFFE0); // Aligned the allocated address on 32 bytes
             acc[0] = PRIME32_3;
             acc[1] = PRIME64_1;
             acc[2] = PRIME64_2;
@@ -512,7 +512,7 @@ namespace BurstExpressions.Runtime.Runtime
                 {
                     DefaultHashLongInternalLoop(acc, input, dest, length, secret, 1);
                 }
-                result = MergeAcc(acc, secret + SECRET_MERGEACCS_START, (ulong) length * PRIME64_1);
+                result = MergeAcc(acc, secret + SECRET_MERGEACCS_START, (ulong)length * PRIME64_1);
             }
         }
 
@@ -528,10 +528,10 @@ namespace BurstExpressions.Runtime.Runtime
                 var c1 = input[0];
                 var c2 = input[length >> 1];
                 var c3 = input[length - 1];
-                var combinedl = ((uint) c1 << 16) + (((uint) c2) << 24) + (((uint) c3) << 0) + (((uint) length) << 8);
+                var combinedl = ((uint)c1 << 16) + (((uint)c2) << 24) + (((uint)c3) << 0) + (((uint)length) << 8);
                 var combinedh = RotL32(Swap32(combinedl), 13);
-                var bitflipl = (Read32LE(secret) ^ Read32LE(secret+4)) + seed;
-                var bitfliph = (Read32LE(secret+8) ^ Read32LE(secret+12)) - seed;
+                var bitflipl = (Read32LE(secret) ^ Read32LE(secret + 4)) + seed;
+                var bitfliph = (Read32LE(secret + 8) ^ Read32LE(secret + 12)) - seed;
                 var keyed_lo = combinedl ^ bitflipl;
                 var keyed_hi = combinedh ^ bitfliph;
 
@@ -548,7 +548,7 @@ namespace BurstExpressions.Runtime.Runtime
                 var input_lo = Read32LE(input);
                 var input_hi = Read32LE(input + len - 4);
                 var input_64 = input_lo + ((ulong)input_hi << 32);
-                var bitflip = (Read64LE(secret+16) ^ Read64LE(secret+24)) + seed;
+                var bitflip = (Read64LE(secret + 16) ^ Read64LE(secret + 24)) + seed;
                 var keyed = input_64 ^ bitflip;
 
                 var low = Common.umul128(keyed, PRIME64_1 + (ulong)(len << 2), out var high);
@@ -557,7 +557,7 @@ namespace BurstExpressions.Runtime.Runtime
                 low ^= (high >> 3);
 
                 low = XorShift64(low, 35);
-                low*= 0x9FB21C651E98DF25UL;
+                low *= 0x9FB21C651E98DF25UL;
                 low = XorShift64(low, 28);
                 high = Avalanche(high);
                 result = ToUint4(low, high);
@@ -569,16 +569,16 @@ namespace BurstExpressions.Runtime.Runtime
         {
             unchecked
             {
-                var bitflipl = (Read64LE(secret+32) ^ Read64LE(secret+40)) - seed;
-                var bitfliph = (Read64LE(secret+48) ^ Read64LE(secret+56)) + seed;
+                var bitflipl = (Read64LE(secret + 32) ^ Read64LE(secret + 40)) - seed;
+                var bitfliph = (Read64LE(secret + 48) ^ Read64LE(secret + 56)) + seed;
                 var input_lo = Read64LE(input);
                 var input_hi = Read64LE(input + len - 8);
                 var low = Common.umul128(input_lo ^ input_hi ^ bitflipl, PRIME64_1, out var high);
 
                 low += (ulong)(len - 1) << 54;
-                input_hi   ^= bitfliph;
+                input_hi ^= bitfliph;
                 high += input_hi + Mul32To64((uint)input_hi, PRIME32_2 - 1);
-                low  ^= Swap64(high);
+                low ^= Swap64(high);
 
                 var hlow = Common.umul128(low, PRIME64_2, out var hhigh);
                 hhigh += high * PRIME64_2;
@@ -608,10 +608,10 @@ namespace BurstExpressions.Runtime.Runtime
                 return;
             }
 
-            var bitflipl = Read64LE(secret+64) ^ Read64LE(secret+72);
-            var bitfliph = Read64LE(secret+80) ^ Read64LE(secret+88);
+            var bitflipl = Read64LE(secret + 64) ^ Read64LE(secret + 72);
+            var bitfliph = Read64LE(secret + 80) ^ Read64LE(secret + 88);
             var low = AvalancheH64(seed ^ bitflipl);
-            var hi = AvalancheH64( seed ^ bitfliph);
+            var hi = AvalancheH64(seed ^ bitfliph);
             result = ToUint4(low, hi);
         }
 
@@ -620,7 +620,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             unchecked
             {
-                var acc = new ulong2((ulong) length * PRIME64_1, 0);
+                var acc = new ulong2((ulong)length * PRIME64_1, 0);
                 if (length > 32)
                 {
                     if (length > 64)
@@ -639,7 +639,7 @@ namespace BurstExpressions.Runtime.Runtime
                 acc = Mix32(acc, input, input + length - 16, secret, seed);
 
                 var low64 = acc.x + acc.y;
-                var high64 = acc.x * PRIME64_1 + acc.y * PRIME64_4 + ((ulong) length - seed) * PRIME64_2;
+                var high64 = acc.x * PRIME64_1 + acc.y * PRIME64_4 + ((ulong)length - seed) * PRIME64_2;
 
                 result = ToUint4(Avalanche(low64), 0ul - Avalanche(high64));
             }
@@ -650,7 +650,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             unchecked
             {
-                var acc = new ulong2((ulong) length * PRIME64_1, 0);
+                var acc = new ulong2((ulong)length * PRIME64_1, 0);
                 var nbRounds = length / 32;
                 int i;
 
@@ -672,7 +672,7 @@ namespace BurstExpressions.Runtime.Runtime
                     secret + SECRET_KEY_MIN_SIZE - MIDSIZE_LASTOFFSET - 16, 0UL - seed);
 
                 var low64 = acc.x + acc.y;
-                var high64 = acc.x * PRIME64_1 + acc.y * PRIME64_4 + ((ulong) length - seed) * PRIME64_2;
+                var high64 = acc.x * PRIME64_1 + acc.y * PRIME64_4 + ((ulong)length - seed) * PRIME64_2;
 
                 result = ToUint4(Avalanche(low64), 0ul - Avalanche(high64));
             }
@@ -682,7 +682,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             // var acc = stackalloc ulong[ACC_NB];
             var addr = stackalloc byte[STRIPE_LEN + 31];
-            var acc = (ulong*) ((ulong) addr + 31 & 0xFFFFFFFFFFFFFFE0); // Aligned the allocated address on 32 bytes
+            var acc = (ulong*)((ulong)addr + 31 & 0xFFFFFFFFFFFFFFE0); // Aligned the allocated address on 32 bytes
             acc[0] = PRIME32_3;
             acc[1] = PRIME64_1;
             acc[2] = PRIME64_2;
@@ -705,9 +705,9 @@ namespace BurstExpressions.Runtime.Runtime
                     DefaultHashLongInternalLoop(acc, input, dest, length, secret, 0);
                 }
 
-                var low64 = MergeAcc(acc, secret + SECRET_MERGEACCS_START, (ulong) length * PRIME64_1);
+                var low64 = MergeAcc(acc, secret + SECRET_MERGEACCS_START, (ulong)length * PRIME64_1);
                 var high64 = MergeAcc(acc, secret + SECRET_KEY_SIZE - 64 - SECRET_MERGEACCS_START,
-                    ~((ulong) length * PRIME64_2));
+                    ~((ulong)length * PRIME64_2));
 
                 result = ToUint4(low64, high64);
             }
@@ -741,17 +741,17 @@ namespace BurstExpressions.Runtime.Runtime
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static unsafe ulong Read64LE(void* addr) => *(ulong*) addr;
+        private static unsafe ulong Read64LE(void* addr) => *(ulong*)addr;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static unsafe uint Read32LE(void* addr) => *(uint*) addr;
+        private static unsafe uint Read32LE(void* addr) => *(uint*)addr;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static unsafe void Write64LE(void* addr, ulong value) => *(ulong*) addr = value;
+        private static unsafe void Write64LE(void* addr, ulong value) => *(ulong*)addr = value;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static unsafe void Read32LE(void* addr, uint value) => *(uint*) addr = value;
+        private static unsafe void Read32LE(void* addr, uint value) => *(uint*)addr = value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong Mul32To64(uint x, uint y) => (ulong) x * y;
+        private static ulong Mul32To64(uint x, uint y) => (ulong)x * y;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong Swap64(ulong x)
@@ -759,8 +759,8 @@ namespace BurstExpressions.Runtime.Runtime
             return ((x << 56) & 0xff00000000000000UL) |
                    ((x << 40) & 0x00ff000000000000UL) |
                    ((x << 24) & 0x0000ff0000000000UL) |
-                   ((x <<  8) & 0x000000ff00000000UL) |
-                   ((x >>  8) & 0x00000000ff000000UL) |
+                   ((x << 8) & 0x000000ff00000000UL) |
+                   ((x >> 8) & 0x00000000ff000000UL) |
                    ((x >> 24) & 0x0000000000ff0000UL) |
                    ((x >> 40) & 0x000000000000ff00UL) |
                    ((x >> 56) & 0x00000000000000ffUL);
@@ -770,8 +770,8 @@ namespace BurstExpressions.Runtime.Runtime
         private static uint Swap32(uint x)
         {
             return ((x << 24) & 0xff000000) |
-                   ((x <<  8) & 0x00ff0000) |
-                   ((x >>  8) & 0x0000ff00) |
+                   ((x << 8) & 0x00ff0000) |
+                   ((x >> 8) & 0x0000ff00) |
                    ((x >> 24) & 0x000000ff);
         }
 
@@ -876,7 +876,7 @@ namespace BurstExpressions.Runtime.Runtime
         {
             h64 ^= RotL64(h64, 49) ^ RotL64(h64, 24);
             h64 *= 0x9FB21C651E98DF25UL;
-            h64 ^= (h64 >> 35) + length ;
+            h64 ^= (h64 >> 35) + length;
             h64 *= 0x9FB21C651E98DF25UL;
             return XorShift64(h64, 28);
         }
@@ -884,7 +884,7 @@ namespace BurstExpressions.Runtime.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe ulong Mix2Acc(ulong acc0, ulong acc1, byte* secret)
         {
-            return Mul128Fold64(acc0 ^ Read64LE(secret), acc1 ^ Read64LE(secret+8));
+            return Mul128Fold64(acc0 ^ Read64LE(secret), acc1 ^ Read64LE(secret + 8));
         }
 
         internal static unsafe ulong MergeAcc(ulong* acc, byte* secret, ulong start)
@@ -909,7 +909,7 @@ namespace BurstExpressions.Runtime.Runtime
         private static unsafe void DefaultHashLongInternalLoop(ulong* acc, byte* input, byte* dest, long length, byte* secret, int isHash64)
         {
             // Process packets of 512 bits
-            var nb_blocks = (length-1) / BLOCK_LEN;
+            var nb_blocks = (length - 1) / BLOCK_LEN;
             for (int n = 0; n < nb_blocks; n++)
             {
                 DefaultAccumulate(acc, input + n * BLOCK_LEN, dest == null ? null : dest + n * BLOCK_LEN, secret,
@@ -917,7 +917,7 @@ namespace BurstExpressions.Runtime.Runtime
                 DefaultScrambleAcc(acc, secret + SECRET_KEY_SIZE - STRIPE_LEN);
             }
 
-            var nbStripes = ((length-1) - (BLOCK_LEN * nb_blocks)) / STRIPE_LEN;
+            var nbStripes = ((length - 1) - (BLOCK_LEN * nb_blocks)) / STRIPE_LEN;
             DefaultAccumulate(acc, input + nb_blocks * BLOCK_LEN, dest == null ? null : dest + nb_blocks * BLOCK_LEN,
                 secret, nbStripes, isHash64);
 
@@ -958,7 +958,7 @@ namespace BurstExpressions.Runtime.Runtime
                 }
 
                 acc[i ^ 1] += data_val;
-                acc[i] += Mul32To64((uint) (data_key & 0xFFFFFFFF), (uint) (data_key >> 32));
+                acc[i] += Mul32To64((uint)(data_key & 0xFFFFFFFF), (uint)(data_key >> 32));
             }
         }
 

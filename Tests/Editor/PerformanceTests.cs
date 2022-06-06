@@ -16,8 +16,8 @@ public class PerformanceTests : EvaluationTestsBase
 {
     protected interface IPerfCase
     {
-        public float3 Code(float input);
-        public string Expression { get; }
+        float3 Code(float input);
+        string Expression { get; }
     }
 
     private struct ConstantCase : IPerfCase
@@ -53,8 +53,8 @@ public class PerformanceTests : EvaluationTestsBase
             {
                 for (int index = 0; index < elementCount; index++)
                 {
-                    var input = inputs[index];
-                    float3 res = perfCase.Code(input);
+                    var inputf = inputs[index];
+                    float3 res = perfCase.Code(inputf);
                     outputs[index] = res;
                 }
             })

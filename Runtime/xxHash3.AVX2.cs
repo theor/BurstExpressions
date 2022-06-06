@@ -5,7 +5,6 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Collections
 {
-    [BurstCompatible]
     public static partial class xxHash3
     {
         internal static unsafe void Avx2HashLongInternalLoop(ulong* acc, byte* input, byte* dest, long length, byte* secret, int isHash64)
@@ -13,14 +12,14 @@ namespace Unity.Collections
             if (X86.Avx2.IsAvx2Supported)
             {
                 // Process packets of 512 bits
-                var nb_blocks = (length-1) / BLOCK_LEN;
+                var nb_blocks = (length - 1) / BLOCK_LEN;
                 for (int n = 0; n < nb_blocks; n++)
                 {
                     Avx2Accumulate(acc, input + n * BLOCK_LEN, dest == null ? null : dest + n * BLOCK_LEN, secret, NB_ROUNDS, isHash64);
                     Avx2ScrambleAcc(acc, secret + SECRET_KEY_SIZE - STRIPE_LEN);
                 }
 
-                var nbStripes = ((length-1) - (BLOCK_LEN * nb_blocks)) / STRIPE_LEN;
+                var nbStripes = ((length - 1) - (BLOCK_LEN * nb_blocks)) / STRIPE_LEN;
                 Avx2Accumulate(acc, input + nb_blocks * BLOCK_LEN, dest == null ? null : dest + nb_blocks * BLOCK_LEN, secret, nbStripes, isHash64);
 
                 var p = input + length - STRIPE_LEN;
@@ -41,9 +40,9 @@ namespace Unity.Collections
         {
             if (X86.Avx2.IsAvx2Supported)
             {
-                var xAcc = (v256*) acc;
-                var xSecret = (v256*) secret;
-                var prime32 = X86.Avx.mm256_set1_epi32(unchecked((int) PRIME32_1));
+                var xAcc = (v256*)acc;
+                var xSecret = (v256*)secret;
+                var prime32 = X86.Avx.mm256_set1_epi32(unchecked((int)PRIME32_1));
 
                 // First bank
                 var acc_vec = xAcc[0];
@@ -93,13 +92,13 @@ namespace Unity.Collections
         {
             if (X86.Avx2.IsAvx2Supported)
             {
-                var xAcc = (v256*) acc;
-                var xSecret = (v256*) secret;
-                var xInput = (v256*) input;
+                var xAcc = (v256*)acc;
+                var xSecret = (v256*)secret;
+                var xInput = (v256*)input;
 
                 // First bank
                 var data_vec = X86.Avx.mm256_loadu_si256(xInput + 0);
-                var key_vec  = X86.Avx.mm256_loadu_si256(xSecret + 0);
+                var key_vec = X86.Avx.mm256_loadu_si256(xSecret + 0);
                 var data_key = X86.Avx2.mm256_xor_si256(data_vec, key_vec);
 
                 if (dest != null)
@@ -109,8 +108,8 @@ namespace Unity.Collections
 
                 var data_key_lo = X86.Avx2.mm256_shuffle_epi32(data_key, X86.Sse.SHUFFLE(0, 3, 0, 1));
                 var product = X86.Avx2.mm256_mul_epu32(data_key, data_key_lo);
-                var data_swap= X86.Avx2.mm256_shuffle_epi32(data_vec, X86.Sse.SHUFFLE(1, 0, 3, 2));
-                var sum= X86.Avx2.mm256_add_epi64(xAcc[0], data_swap);
+                var data_swap = X86.Avx2.mm256_shuffle_epi32(data_vec, X86.Sse.SHUFFLE(1, 0, 3, 2));
+                var sum = X86.Avx2.mm256_add_epi64(xAcc[0], data_swap);
 
                 xAcc[0] = X86.Avx2.mm256_add_epi64(product, sum);
 

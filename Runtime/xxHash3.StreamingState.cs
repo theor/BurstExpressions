@@ -10,7 +10,6 @@ using Unity.Mathematics;
 
 namespace Unity.Collections
 {
-    [BurstCompatible]
     public static partial class xxHash3
     {
         /// <summary>
@@ -20,7 +19,6 @@ namespace Unity.Collections
         /// Allow to feed the internal hashing accumulators with data through multiple calls to <see cref="Update"/>, then retrieving the final hash value using <see cref="DigestHash64"/> or <see cref="DigestHash128"/>.
         /// More info about how to use this class in its constructor.
         /// </remarks>
-        [BurstCompatible]
         public struct StreamingState
         {
             #region Public API
@@ -35,7 +33,7 @@ namespace Unity.Collections
             /// When all the data has been sent, call <see cref="DigestHash64"/> or <see cref="DigestHash128"/> to retrieve the corresponding key, the <see cref="StreamingState"/>
             /// instance will then be reset, using the same hash key size and same Seed in order to be ready to be used again.
             /// </remarks>
-            public StreamingState(bool isHash64, ulong seed=0)
+            public StreamingState(bool isHash64, ulong seed = 0)
             {
                 State = default;
                 Reset(isHash64, seed);
@@ -47,7 +45,7 @@ namespace Unity.Collections
             /// <param name="isHash64"></param>
             /// <param name="seed">The seed value to alter the computed hash value from</param>
             /// <remarks> Call this method to start a new streaming session based on this instance</remarks>
-            public unsafe void Reset(bool isHash64, ulong seed=0UL)
+            public unsafe void Reset(bool isHash64, ulong seed = 0UL)
             {
                 // Reset the whole buffer to 0
                 var size = UnsafeUtility.SizeOf<StreamingStateData>();
@@ -92,7 +90,7 @@ namespace Unity.Collections
             /// <remarks>This API allows you to feed very small data to be hashed, avoiding you to accumulate them in a big buffer, then computing the hash value from.</remarks>
             public unsafe void Update(void* input, int length)
             {
-                var bInput = (byte*) input;
+                var bInput = (byte*)input;
                 var bEnd = bInput + length;
                 var isHash64 = State.IsHash64;
                 var secret = SecretKey;
@@ -131,7 +129,7 @@ namespace Unity.Collections
                 {
                     var newBufferedSize = bEnd - bInput;
                     UnsafeUtility.MemCpy(Buffer, bInput, newBufferedSize);
-                    State.BufferedSize = (int) newBufferedSize;
+                    State.BufferedSize = (int)newBufferedSize;
                 }
             }
 
@@ -141,10 +139,10 @@ namespace Unity.Collections
             /// <typeparam name="T">The input type.</typeparam>
             /// <param name="input">The input struct that will be hashed</param>
             /// <remarks>This API allows you to feed very small data to be hashed, avoiding you to accumulate them in a big buffer, then computing the hash value from.</remarks>
-            [BurstCompatible(GenericTypeArguments = new [] { typeof(int) })]
             public unsafe void Update<T>(in T input) where T : unmanaged
             {
-                Update(UnsafeUtilityExtensions.AddressOf(input), UnsafeUtility.SizeOf<T>());
+                T i = input;
+                Update(UnsafeUtility.AddressOf(ref i), UnsafeUtility.SizeOf<T>());
             }
 
 
@@ -166,16 +164,16 @@ namespace Unity.Collections
                         DigestLong(acc, secret, 0);
 
                         var low64 = MergeAcc(acc, secret + SECRET_MERGEACCS_START,
-                            (ulong) State.TotalLength * PRIME64_1);
+                            (ulong)State.TotalLength * PRIME64_1);
                         var high64 = MergeAcc(acc, secret + SECRET_LIMIT - SECRET_MERGEACCS_START,
-                            ~((ulong) State.TotalLength * PRIME64_2));
+                            ~((ulong)State.TotalLength * PRIME64_2));
                         hash = ToUint4(low64, high64);
                     }
                     else
                     {
                         hash = Hash128(Buffer, State.TotalLength, State.Seed);
                     }
-                    Reset(State.IsHash64==1, State.Seed);
+                    Reset(State.IsHash64 == 1, State.Seed);
                     return hash;
                 }
             }
@@ -197,13 +195,13 @@ namespace Unity.Collections
                         var acc = stackalloc ulong[ACC_NB];
                         DigestLong(acc, secret, 1);
 
-                        hash = ToUint2(MergeAcc(acc, secret + SECRET_MERGEACCS_START, (ulong) State.TotalLength * PRIME64_1));
+                        hash = ToUint2(MergeAcc(acc, secret + SECRET_MERGEACCS_START, (ulong)State.TotalLength * PRIME64_1));
                     }
                     else
                     {
                         hash = Hash64(Buffer, State.TotalLength, State.Seed);
                     }
-                    Reset(State.IsHash64==1, State.Seed);
+                    Reset(State.IsHash64 == 1, State.Seed);
                     return hash;
                 }
             }
@@ -224,19 +222,19 @@ namespace Unity.Collections
             unsafe ulong* Acc
             {
                 [DebuggerStepThrough]
-                get => (ulong*) UnsafeUtility.AddressOf(ref State.Acc);
+                get => (ulong*)UnsafeUtility.AddressOf(ref State.Acc);
             }
 
             unsafe byte* Buffer
             {
                 [DebuggerStepThrough]
-                get => (byte*) UnsafeUtility.AddressOf(ref State.Buffer);
+                get => (byte*)UnsafeUtility.AddressOf(ref State.Buffer);
             }
 
             unsafe byte* SecretKey
             {
                 [DebuggerStepThrough]
-                get => (byte*) UnsafeUtility.AddressOf(ref State.SecretKey);
+                get => (byte*)UnsafeUtility.AddressOf(ref State.SecretKey);
             }
 
             #endregion
@@ -293,12 +291,12 @@ namespace Unity.Collections
 #if !NET_DOTS
                     if (X86.Avx2.IsAvx2Supported)
                     {
-                        Avx2Accumulate512(acc, lastStripe, null, secret+SECRET_LIMIT-SECRET_LASTACC_START);
+                        Avx2Accumulate512(acc, lastStripe, null, secret + SECRET_LIMIT - SECRET_LASTACC_START);
                     }
                     else
 #endif
                     {
-                        DefaultAccumulate512(acc, lastStripe, null, secret+SECRET_LIMIT-SECRET_LASTACC_START, isHash64);
+                        DefaultAccumulate512(acc, lastStripe, null, secret + SECRET_LIMIT - SECRET_LASTACC_START, isHash64);
                     }
                 }
             }
@@ -324,7 +322,7 @@ namespace Unity.Collections
                         DefaultAccumulate(acc, input + nbStripes * STRIPE_LEN, null, secret, totalStripes - nbStripes, isHash64);
                     }
 
-                    nbStripesSoFar = (int) totalStripes - nbStripes;
+                    nbStripesSoFar = (int)totalStripes - nbStripes;
                 }
                 else
                 {
@@ -339,7 +337,7 @@ namespace Unity.Collections
                         DefaultAccumulate(acc, input, null, secret + nbStripesSoFar * SECRET_CONSUME_RATE, totalStripes, isHash64);
                     }
 
-                    nbStripesSoFar += (int) totalStripes;
+                    nbStripesSoFar += (int)totalStripes;
                 }
             }
 

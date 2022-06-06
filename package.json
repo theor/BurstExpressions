@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "displayName": "Burst Expressions",
   "description": "Burst compiled expression evaluator, optimized for runtime",
-  "unity": "2020.1",
+  "unity": "2019.4",
   "documentationUrl": "https://github.com/theor/BurstExpressions/blob/main/README.md",
   "changelogUrl": "https://github.com/theor/BurstExpressions/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/theor/BurstExpressions/blob/main/LICENSE",
@@ -20,5 +20,5 @@
     "email": "theo.richart@gmail.com",
     "url": "https://www.theor.xyz"
   },
-  "type": "library"
+  "type": "tool"
 }
