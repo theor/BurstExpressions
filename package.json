@@ -9,7 +9,8 @@
   "licensesUrl": "https://github.com/theor/BurstExpressions/blob/main/LICENSE",
   "dependencies": {
     "com.unity.burst": "1.4.8",
-    "com.unity.mathematics": "1.2.1"
+    "com.unity.mathematics": "1.2.1",
+    "com.unity.collections": "0.9.0-preview.6"
   },
   "keywords": [
     "burst"

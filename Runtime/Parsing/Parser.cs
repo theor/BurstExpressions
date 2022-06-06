@@ -36,19 +36,37 @@ namespace BurstExpressions.Runtime.Parsing
 
             public override string ToString()
             {
-                string msg = Kind switch
+                string msg;
+                switch (Kind)
                 {
-                    ErrorKind.None => "None",
-                    ErrorKind.EndOfExpression => "No characters left to parse",
-                    ErrorKind.ClosingParenMissing => "Closing paren missing",
-                    ErrorKind.TuplesNotSupported => "Tuples not supported",
-                    ErrorKind.MismatchedParens => "Mismatched parens",
-                    ErrorKind.MissingOperand => $"Missing operand for the {Argument} operator in the expression",
-                    ErrorKind.UnknownUnaryOperator => $"Cannot match unary operator '{Argument}'",
-                    ErrorKind.UnknownBinaryOperator => $"Cannot match binary operator '{Argument}'",
-                    _ => throw new ArgumentOutOfRangeException()
+                    case ErrorKind.None:
+                        msg = "None";
+                        break;
+                    case ErrorKind.EndOfExpression:
+                        msg = "No characters left to parse";
+                        break;
+                    case ErrorKind.ClosingParenMissing:
+                        msg = "Closing paren missing";
+                        break;
+                    case ErrorKind.TuplesNotSupported:
+                        msg = "Tuples not supported";
+                        break;
+                    case ErrorKind.MismatchedParens:
+                        msg = "Mismatched parens";
+                        break;
+                    case ErrorKind.MissingOperand:
+                        msg = $"Missing operand for the {Argument} operator in the expression";
+                        break;
+                    case ErrorKind.UnknownUnaryOperator:
+                        msg = $"Cannot match unary operator '{Argument}'";
+                        break;
+                    case ErrorKind.UnknownBinaryOperator:
+                        msg = $"Cannot match binary operator '{Argument}'";
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-                    ;
+
                 return $"At {Location}: {msg}";
             }
         }
@@ -189,7 +207,7 @@ namespace BurstExpressions.Runtime.Parsing
                             while (opStack.TryPeek(out var stackOp) && stackOp.Type != OpType.LeftParens)
                             {
                                 opStack.Pop();
-                                if (!PopOpOpandsAndPushNode(stackOp, ref error))
+                                if (!PopOpOpandsAndPushNode(r, output, stackOp, ref error))
                                     return output.Peek();
                             }
 
@@ -221,7 +239,7 @@ namespace BurstExpressions.Runtime.Parsing
                                     readBinOp.Associativity == Associativity.Left))
                             {
                                 opStack.Pop();
-                                if (!PopOpOpandsAndPushNode(stackOp, ref error))
+                                if (!PopOpOpandsAndPushNode(r, output, stackOp, ref error))
                                     return output.Peek();
                             }
 
@@ -283,33 +301,55 @@ namespace BurstExpressions.Runtime.Parsing
                 var readBinOp = opStack.Pop();
                 if (readBinOp.Type == OpType.LeftParens)
                     break;
-                if (!PopOpOpandsAndPushNode(readBinOp, ref error))
+                if (!PopOpOpandsAndPushNode(r, output, readBinOp, ref error))
                     return output.Peek();
             }
 
             return output.Pop();
 
-            bool PopOpOpandsAndPushNode(Operator readBinOp, ref Error error)
+            // bool PopOpOpandsAndPushNode(Operator readBinOp, ref Error error)
+            // {
+            //     var b = output.Pop();
+            //     if (readBinOp.Unary)
+            //     {
+            //         output.Push(new UnOp(readBinOp.Type, b));
+            //     }
+            //     else
+            //     {
+            //         if (output.Count == 0)
+            //         {
+            //             error = new Error(ErrorKind.MissingOperand, r.CurrentTokenIndex, readBinOp.Str);
+            //             output.Push(new BinOp(readBinOp.Type, b, null));
+            //             return false;
+            //         }
+            //         var a = output.Pop();
+            //         output.Push(new BinOp(readBinOp.Type, a, b));
+            //     }
+            //
+            //     return true;
+            // }
+        }
+        
+        static bool PopOpOpandsAndPushNode(Reader r, Stack<IAstNode> output, Operator readBinOp, ref Error error)
+        {
+            var b = output.Pop();
+            if (readBinOp.Unary)
             {
-                var b = output.Pop();
-                if (readBinOp.Unary)
-                {
-                    output.Push(new UnOp(readBinOp.Type, b));
-                }
-                else
-                {
-                    if (output.Count == 0)
-                    {
-                        error = new Error(ErrorKind.MissingOperand, r.CurrentTokenIndex, readBinOp.Str);
-                        output.Push(new BinOp(readBinOp.Type, b, null));
-                        return false;
-                    }
-                    var a = output.Pop();
-                    output.Push(new BinOp(readBinOp.Type, a, b));
-                }
-
-                return true;
+                output.Push(new UnOp(readBinOp.Type, b));
             }
+            else
+            {
+                if (output.Count == 0)
+                {
+                    error = new Error(ErrorKind.MissingOperand, r.CurrentTokenIndex, readBinOp.Str);
+                    output.Push(new BinOp(readBinOp.Type, b, null));
+                    return false;
+                }
+                var a = output.Pop();
+                output.Push(new BinOp(readBinOp.Type, a, b));
+            }
+
+            return true;
         }
     }
 }

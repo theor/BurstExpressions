@@ -145,12 +145,19 @@ namespace BurstExpressions.Runtime.Parsing
                         }
                         else
                         {
-                            var v = variableParam.IsSingleFloat switch
+                            float3 v;
+                            switch (variableParam.IsSingleFloat)
                             {
-                                NamedValue.FormulaParamFlag.Float => new float3(variableParam.Value.x),
-                                NamedValue.FormulaParamFlag.Vector3 => (float3)variableParam.Value,
-                                _ => throw new System.NotImplementedException(),
-                            };
+                                case NamedValue.FormulaParamFlag.Vector3:
+                                    v = (float3)variableParam.Value;
+                                    break;
+                                case NamedValue.FormulaParamFlag.Float:
+                                    v = new float3(variableParam.Value.x);
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                            
                             nodes.Add(new EvaluationInstruction(EvalOp.Const_0, v));
                         }
                     }
@@ -169,19 +176,22 @@ namespace BurstExpressions.Runtime.Parsing
                     // reverse order
                     Rec(nodes, variables, bin.B, formulaParams, variableInfos, translationOptions);
                     Rec(nodes, variables, bin.A, formulaParams, variableInfos, translationOptions);
-                    nodes.Add(new EvaluationInstruction(bin.Type switch
+
+                    EvalOp op = default;
+                    switch (bin.Type)
                     {
-                        OpType.Gt => EvalOp.Gt_2,
-                        OpType.Gte => EvalOp.Gte_2,
-                        OpType.Lt => EvalOp.Lt_2,
-                        OpType.Lte => EvalOp.Lte_2,
-                        OpType.Add => EvalOp.Add_2,
-                        OpType.Sub => EvalOp.Sub_2,
-                        OpType.Mul => EvalOp.Mul_2,
-                        OpType.Div => EvalOp.Div_2,
-                        OpType.Mod => EvalOp.Mod_2,
-                        _ => throw new NotImplementedException(bin.Type.ToString())
-                    }));
+                        case OpType.Gt: op = EvalOp.Gt_2; break;
+                        case OpType.Gte: op = EvalOp.Gte_2; break;
+                        case OpType.Lt: op = EvalOp.Lt_2; break;
+                        case OpType.Lte: op = EvalOp.Lte_2; break;
+                        case OpType.Add: op = EvalOp.Add_2; break;
+                        case OpType.Sub: op = EvalOp.Sub_2; break;
+                        case OpType.Mul: op = EvalOp.Mul_2; break;
+                        case OpType.Div: op = EvalOp.Div_2; break;
+                        case OpType.Mod: op = EvalOp.Mod_2; break;
+                    }
+                    
+                    nodes.Add(new EvaluationInstruction(op));
                     break;
                 case FuncCall f:
                     void CheckArgCount(int n)
