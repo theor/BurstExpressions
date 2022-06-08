@@ -4,7 +4,7 @@
 
 An optimizing  expression parser with an efficient Burst-compiled evaluation engine and live-edit in editor.
 
-Details in my blog article here: [https://theor.xyz/posts/burst-expressions/](https://theor.xyz/posts/burst-expressions/)
+Details in my blog article here: [https://theor.xyz/burst-expressions/](https://theor.xyz/burst-expressions/)
 
 List of available functions [here](https://github.com/theor/BurstExpressions/blob/main/Doc/functions.md)
 
